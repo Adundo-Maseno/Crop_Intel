@@ -1,0 +1,779 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <!-- Compact Hero Search Header -->
+    <div class="relative overflow-hidden bg-gradient-to-br from-primary-600 via-purple-600 to-pink-500 rounded-2xl shadow-xl p-5 mb-5">
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute top-0 left-0 w-32 h-32 bg-white rounded-full mix-blend-overlay filter blur-2xl animate-bounce-gentle"></div>
+            <div class="absolute bottom-0 right-0 w-48 h-48 bg-white rounded-full mix-blend-overlay filter blur-2xl animate-bounce-gentle" style="animation-delay: 1s;"></div>
+        </div>
+        
+        <div class="relative z-10 text-center mb-4">
+            <div class="inline-flex items-center justify-center w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl mb-3 shadow-lg">
+                <i class="fas fa-search text-2xl text-white"></i>
+            </div>
+            <h1 class="text-2xl md:text-3xl font-bold text-white mb-2 tracking-tight">
+                Discover Crop Varieties
+            </h1>
+            <p class="text-sm text-white/90 max-w-2xl mx-auto font-light">
+                Advanced intelligent search across thousands of crop varieties worldwide
+            </p>
+        </div>
+        
+        <!-- Search Mode Toggle -->
+        <div class="relative z-10 flex flex-col lg:flex-row justify-between items-center gap-4 p-4 bg-white/10 backdrop-blur-xl rounded-xl border border-white/20 shadow-lg mb-4">
+            <div class="flex items-center space-x-3">
+                <span class="text-sm font-semibold text-white flex items-center">
+                    <i class="fas fa-brain mr-2"></i>Search Intelligence:
+                </span>
+                <div class="flex bg-white/20 backdrop-blur-md rounded-xl p-1">
+                    <a href="{{ url_for('search', mode='cascading', q=query, crop=current_filters.crop, country=current_filters.country, seed_type=current_filters.seed_type, year=current_filters.year) }}"
+                       class="px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300 flex items-center {% if search_mode == 'cascading' %}bg-white text-primary-600 shadow-md scale-105{% else %}text-white/80 hover:text-white hover:bg-white/10{% endif %}">
+                        <i class="fas fa-layer-group mr-1"></i>Cascading
+                    </a>
+                    <a href="{{ url_for('search', mode='global', q=query, crop=current_filters.crop, country=current_filters.country, seed_type=current_filters.seed_type, year=current_filters.year) }}"
+                       class="px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300 flex items-center {% if search_mode == 'global' %}bg-white text-primary-600 shadow-md scale-105{% else %}text-white/80 hover:text-white hover:bg-white/10{% endif %}">
+                        <i class="fas fa-globe-americas mr-1"></i>Global
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Search Statistics -->
+            {% if query %}
+            <div class="flex items-center space-x-2">
+                <span class="bg-white text-primary-600 px-4 py-1.5 rounded-full text-xs font-bold shadow-md animate-slide-in">
+                    <i class="fas fa-database mr-1"></i>
+                    {% if pagination %}
+                        {{ pagination.total }} Results
+                    {% else %}
+                        {{ varieties|length }} Results
+                    {% endif %}
+                </span>
+                {% if pagination and pagination.pages > 1 %}
+                <span class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-md animate-slide-in" style="animation-delay: 0.1s;">
+                    Page {{ page }}/{{ pagination.pages }}
+                </span>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Enhanced Search Box -->
+        <form method="GET" action="{{ url_for('search') }}" class="relative z-10">
+            <input type="hidden" name="mode" value="{{ search_mode }}">
+            <div class="flex flex-col sm:flex-row gap-3">
+                <div class="flex-1 relative group">
+                    <div class="absolute inset-0 bg-gradient-to-r from-primary-400 to-purple-400 rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity duration-300"></div>
+                    <div class="relative flex items-center bg-white rounded-xl shadow-xl overflow-hidden">
+                        <div class="pl-4 text-primary-600">
+                            <i class="fas fa-search text-xl"></i>
+                        </div>
+                        <input type="text" 
+                               name="q" 
+                               value="{{ query }}"
+                               placeholder="Search variety names, crops, countries, special attributes..."
+                               class="flex-1 px-3 py-3 text-sm border-0 focus:ring-0 focus:outline-none"
+                               id="searchInput"
+                               autocomplete="off">
+                        {% if query %}
+                        <button type="button" onclick="clearSearch()" class="px-3 text-gray-400 hover:text-gray-600 transition-colors">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                <button type="submit" 
+                        class="group relative px-8 py-3 bg-white text-primary-600 rounded-xl font-bold text-sm shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-r from-primary-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <span class="relative z-10 flex items-center justify-center group-hover:text-white transition-colors duration-300">
+                        <i class="fas fa-bolt mr-2"></i>Search
+                    </span>
+                </button>
+            </div>
+            <div class="mt-2 text-center">
+                <span class="text-white/80 text-xs">
+                    <i class="fas fa-keyboard mr-1"></i>
+                    Press <kbd class="px-2 py-0.5 bg-white/20 rounded text-xs">Ctrl + /</kbd> to focus search
+                </span>
+            </div>
+        </form>
+    </div>
+
+    <!-- Filters and Results Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-5">
+        <!-- Advanced Filters Sidebar -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-2xl shadow-lg p-4 sticky top-4 hover-lift border border-gray-100 hover:border-primary-200 transition-all duration-300">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                        <div class="w-9 h-9 bg-gradient-to-br from-primary-500 to-purple-600 rounded-xl flex items-center justify-center mr-2">
+                            <i class="fas fa-sliders-h text-white text-sm"></i>
+                        </div>
+                        Filters
+                    </h3>
+                    <span class="text-xs bg-primary-100 text-primary-700 px-2.5 py-1 rounded-full font-semibold">
+                        {% set active_filters = 0 %}
+                        {% if current_filters.crop %}{% set active_filters = active_filters + 1 %}{% endif %}
+                        {% if current_filters.country %}{% set active_filters = active_filters + 1 %}{% endif %}
+                        {% if current_filters.seed_type %}{% set active_filters = active_filters + 1 %}{% endif %}
+                        {% if current_filters.year %}{% set active_filters = active_filters + 1 %}{% endif %}
+                        {{ active_filters }} Active
+                    </span>
+                </div>
+                
+                <form method="GET" action="{{ url_for('search') }}" id="filterForm">
+                    <input type="hidden" name="q" value="{{ query }}">
+                    <input type="hidden" name="mode" value="{{ search_mode }}">
+                    <input type="hidden" name="page" value="1">
+                    
+                    <!-- Results Per Page -->
+                    <div class="mb-4">
+                        <label class="flex items-center text-xs font-bold text-gray-700 mb-2">
+                            <i class="fas fa-list-ol text-primary-500 mr-1.5"></i>
+                            Results Per Page
+                        </label>
+                        <select name="per_page" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-100 focus:border-primary-500 transition-all duration-300 font-medium hover:border-primary-300">
+                            <option value="10" {% if per_page == 10 %}selected{% endif %}>10 per page</option>
+                            <option value="20" {% if per_page == 20 %}selected{% endif %}>20 per page</option>
+                            <option value="50" {% if per_page == 50 %}selected{% endif %}>50 per page</option>
+                            <option value="100" {% if per_page == 100 %}selected{% endif %}>100 per page</option>
+                        </select>
+                    </div>
+                    
+                    <div class="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent my-4"></div>
+                    
+                    <!-- Crop Filter -->
+                    <div class="mb-4">
+                        <label class="flex items-center text-xs font-bold text-gray-700 mb-2">
+                            <i class="fas fa-seedling text-green-500 mr-1.5"></i>
+                            Crop Type
+                        </label>
+                        <select name="crop" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-100 focus:border-primary-500 transition-all duration-300 font-medium hover:border-primary-300">
+                            <option value="">All Crops</option>
+                            {% for crop in crops %}
+                            <option value="{{ crop }}" {% if current_filters.crop == crop %}selected{% endif %}>{{ crop }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Country Filter -->
+                    <div class="mb-4">
+                        <label class="flex items-center text-xs font-bold text-gray-700 mb-2">
+                            <i class="fas fa-globe text-blue-500 mr-1.5"></i>
+                            Country
+                        </label>
+                        <select name="country" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-100 focus:border-primary-500 transition-all duration-300 font-medium hover:border-primary-300">
+                            <option value="">All Countries</option>
+                            {% for country in countries %}
+                            <option value="{{ country }}" {% if current_filters.country == country %}selected{% endif %}>{{ country }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Seed Type Filter -->
+                    <div class="mb-4">
+                        <label class="flex items-center text-xs font-bold text-gray-700 mb-2">
+                            <i class="fas fa-box text-orange-500 mr-1.5"></i>
+                            Seed Type
+                        </label>
+                        <select name="seed_type" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-100 focus:border-primary-500 transition-all duration-300 font-medium hover:border-primary-300">
+                            <option value="">All Seed Types</option>
+                            {% for seed_type in seed_types %}
+                            <option value="{{ seed_type }}" {% if current_filters.seed_type == seed_type %}selected{% endif %}>{{ seed_type }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Year Filter -->
+                    <div class="mb-4">
+                        <label class="flex items-center text-xs font-bold text-gray-700 mb-2">
+                            <i class="fas fa-calendar-alt text-purple-500 mr-1.5"></i>
+                            Release Year
+                        </label>
+                        <select name="year" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-100 focus:border-primary-500 transition-all duration-300 font-medium hover:border-primary-300">
+                            <option value="">All Years</option>
+                            {% for year in years %}
+                            <option value="{{ year }}" {% if current_filters.year == year %}selected{% endif %}>{{ year }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <button type="submit" class="flex-1 bg-gradient-to-r from-primary-600 to-purple-600 text-white py-2.5 px-4 rounded-xl hover:from-primary-700 hover:to-purple-700 transition-all duration-300 font-bold text-sm shadow-md hover:shadow-lg hover:scale-105">
+                            <i class="fas fa-check mr-1"></i>Apply
+                        </button>
+                        <a href="{{ url_for('search', mode=search_mode, q=query) }}" class="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-300 font-bold hover:scale-105 flex items-center justify-center">
+                            <i class="fas fa-redo text-xs"></i>
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="lg:col-span-3">
+            {% if query %}
+                {% if varieties %}
+                <!-- Results Summary Card -->
+                <div class="bg-gradient-to-r from-primary-50 to-purple-50 rounded-2xl shadow-md p-4 mb-4 border border-primary-100">
+                    <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-gradient-to-br from-primary-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
+                                <i class="fas fa-check-double text-white"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-600 font-medium">Search Results</div>
+                                <div class="text-xl font-bold text-gray-900">
+                                    <span class="text-primary-600">{{ start_item }}-{{ end_item }}</span> 
+                                    <span class="text-gray-400 text-sm">of</span>
+                                    <span class="text-primary-600">{{ pagination.total }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% if pagination.pages > 1 %}
+                        <div class="bg-white rounded-xl px-4 py-2 shadow-sm border border-primary-200">
+                            <span class="text-xs text-gray-600 font-medium">Page</span>
+                            <span class="text-base font-bold text-primary-600 ml-1">{{ page }}</span>
+                            <span class="text-gray-400 mx-1">/</span>
+                            <span class="text-base font-bold text-gray-700">{{ pagination.pages }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Varieties Grid -->
+                <div class="space-y-4 mb-5">
+                    {% for variety in varieties %}
+                    <!-- Compact Variety Card -->
+                    <div class="group bg-white rounded-2xl shadow-md hover:shadow-xl p-5 transition-all duration-500 border border-gray-100 hover:border-primary-300 hover:-translate-y-1 animate-fade-in" style="animation-delay: {{ loop.index0 * 0.05 }}s;">
+                        <div class="flex flex-col lg:flex-row gap-4">
+                            <!-- Main Content Area -->
+                            <div class="flex-1 min-w-0">
+                                <!-- Header with Variety Name -->
+                                <div class="mb-3">
+                                    <div class="flex items-start justify-between mb-2">
+                                        <h3 class="text-xl md:text-2xl font-bold text-gray-900 group-hover:text-primary-700 transition-colors duration-300">
+                                            {{ variety.variety_release_name or 'Unnamed Variety' }}
+                                        </h3>
+                                        {% if variety.year_of_release %}
+                                        <div class="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-md ml-3">
+                                            <div class="text-center">
+                                                <div class="text-white text-xs font-bold leading-tight">Year</div>
+                                                <div class="text-white text-sm font-bold">{{ variety.year_of_release }}</div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Tags Row -->
+                                    <div class="flex flex-wrap gap-1.5">
+                                        {% if variety.crop %}
+                                        <span class="inline-flex items-center bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm hover:shadow-md transition-shadow duration-300">
+                                            <i class="fas fa-leaf mr-1"></i>{{ variety.crop }}
+                                        </span>
+                                        {% endif %}
+                                        {% if variety.country %}
+                                        <span class="inline-flex items-center bg-gradient-to-r from-blue-500 to-cyan-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm hover:shadow-md transition-shadow duration-300">
+                                            <i class="fas fa-flag mr-1"></i>{{ variety.country }}
+                                        </span>
+                                        {% endif %}
+                                        {% if variety.seed_type %}
+                                        <span class="inline-flex items-center bg-gradient-to-r from-orange-500 to-amber-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm hover:shadow-md transition-shadow duration-300">
+                                            <i class="fas fa-box mr-1"></i>{{ variety.seed_type }}
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Information Grid -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                                    {% if variety.botanical_name %}
+                                    <div class="flex items-start bg-orange-50 rounded-xl p-3 border border-orange-100 hover:border-orange-300 transition-colors duration-300">
+                                        <div class="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center mr-2">
+                                            <i class="fas fa-flask text-white text-sm"></i>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <div class="text-xs font-bold text-orange-700 uppercase tracking-wider mb-0.5">Botanical Name</div>
+                                            <div class="font-mono text-xs text-gray-700 break-words">{{ variety.botanical_name }}</div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if variety.releasing_entity %}
+                                    <div class="flex items-start bg-blue-50 rounded-xl p-3 border border-blue-100 hover:border-blue-300 transition-colors duration-300">
+                                        <div class="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center mr-2">
+                                            <i class="fas fa-building text-white text-sm"></i>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <div class="text-xs font-bold text-blue-700 uppercase tracking-wider mb-0.5">Released By</div>
+                                            <div class="text-xs text-gray-700 break-words">{{ variety.releasing_entity|truncate(30) }}</div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if variety.maturity_days %}
+                                    <div class="flex items-start bg-purple-50 rounded-xl p-3 border border-purple-100 hover:border-purple-300 transition-colors duration-300">
+                                        <div class="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mr-2">
+                                            <i class="fas fa-clock text-white text-sm"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-xs font-bold text-purple-700 uppercase tracking-wider mb-0.5">Maturity</div>
+                                            <div class="text-xs font-bold text-gray-700">{{ variety.maturity_days }} days</div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if variety.yield_mt_ha %}
+                                    <div class="flex items-start bg-green-50 rounded-xl p-3 border border-green-100 hover:border-green-300 transition-colors duration-300">
+                                        <div class="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center mr-2">
+                                            <i class="fas fa-chart-line text-white text-sm"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-xs font-bold text-green-700 uppercase tracking-wider mb-0.5">Yield</div>
+                                            <div class="text-xs font-bold text-gray-700">{{ variety.yield_mt_ha }} mt/ha</div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Special Attributes Highlight -->
+                                {% if variety.special_attributes %}
+                                <div class="relative overflow-hidden bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-xl p-3">
+                                    <div class="absolute top-0 right-0 w-24 h-24 bg-yellow-300 rounded-full opacity-10 -mr-12 -mt-12"></div>
+                                    <div class="relative flex items-start">
+                                        <div class="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center mr-3">
+                                            <i class="fas fa-star text-white text-sm"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-xs font-bold text-yellow-700 uppercase tracking-wider mb-1">Special Attributes</div>
+                                            <div class="text-xs text-yellow-900 leading-relaxed">{{ variety.special_attributes|truncate(120) }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Action Sidebar -->
+                            <div class="lg:w-44 flex-shrink-0 flex flex-col gap-3">
+                                <a href="{{ url_for('view_variety', id=variety.id) }}" 
+                                   class="group/btn relative overflow-hidden bg-gradient-to-r from-primary-600 to-purple-600 text-white py-3 px-5 rounded-xl font-bold text-center text-sm shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105">
+                                    <div class="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></div>
+                                    <span class="relative flex items-center justify-center">
+                                        <i class="fas fa-eye mr-2 group-hover/btn:scale-110 transition-transform"></i>
+                                        View Details
+                                    </span>
+                                </a>
+                                
+                                <!-- Quick Stats Badges -->
+                                <div class="space-y-2">
+                                    {% if variety.drought_tolerant %}
+                                    <div class="flex items-center bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-2 rounded-lg text-xs font-bold shadow-sm">
+                                        <i class="fas fa-tint-slash mr-1.5"></i>
+                                        <span>Drought Tolerant</span>
+                                    </div>
+                                    {% endif %}
+                                    {% if variety.disease_tolerant %}
+                                    <div class="flex items-center bg-gradient-to-r from-blue-500 to-cyan-600 text-white px-3 py-2 rounded-lg text-xs font-bold shadow-sm">
+                                        <i class="fas fa-shield-virus mr-1.5"></i>
+                                        <span>Disease Resistant</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Premium Pagination -->
+                {% if pagination.pages > 1 %}
+                <div class="bg-white rounded-2xl shadow-lg p-5 border border-gray-100">
+                    <div class="flex flex-col lg:flex-row justify-between items-center gap-5">
+                        <!-- Page Info -->
+                        <div class="text-center lg:text-left">
+                            <div class="text-xs text-gray-600 font-medium mb-1">Current Page</div>
+                            <div class="text-2xl font-bold">
+                                <span class="text-primary-600">{{ page }}</span>
+                                <span class="text-gray-400 text-lg mx-2">/</span>
+                                <span class="text-gray-700">{{ pagination.pages }}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Pagination Controls -->
+                        <div class="flex flex-wrap items-center justify-center gap-2">
+                            <!-- First Page -->
+                            {% if page > 1 %}
+                            <a href="{{ url_for('search', q=query, mode=search_mode, crop=current_filters.crop, country=current_filters.country, seed_type=current_filters.seed_type, year=current_filters.year, page=1, per_page=per_page) }}"
+                               class="w-10 h-10 flex items-center justify-center border border-gray-300 text-gray-700 rounded-lg hover:bg-primary-50 hover:border-primary-500 hover:text-primary-600 transition-all duration-300 font-bold hover:scale-110">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                            {% endif %}
+                            
+                            <!-- Previous Page -->
+                            {% if pagination.has_prev %}
+                            <a href="{{ url_for('search', q=query, mode=search_mode, crop=current_filters.crop, country=current_filters.country, seed_type=current_filters.seed_type, year=current_filters.year, page=page-1, per_page=per_page) }}"
+                               class="w-10 h-10 flex items-center justify-center border border-gray-300 text-gray-700 rounded-lg hover:bg-primary-50 hover:border-primary-500 hover:text-primary-600 transition-all duration-300 font-bold hover:scale-110">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                            {% endif %}
+                            
+                            <!-- Page Numbers -->
+                            <div class="flex gap-2">
+                                {% for p in range([1, page-2]|max, [pagination.pages, page+3]|min + 1) %}
+                                    {% if p == page %}
+                                    <span class="w-10 h-10 flex items-center justify-center bg-gradient-to-r from-primary-600 to-purple-600 text-white rounded-lg font-bold shadow-md scale-110 text-sm">
+                                        {{ p }}
+                                    </span>
+                                    {% else %}
+                                    <a href="{{ url_for('search', q=query, mode=search_mode, crop=current_filters.crop, country=current_filters.country, seed_type=current_filters.seed_type, year=current_filters.year, page=p, per_page=per_page) }}"
+                                       class="w-10 h-10 flex items-center justify-center border border-gray-300 text-gray-700 rounded-lg hover:bg-primary-50 hover:border-primary-500 hover:text-primary-600 transition-all duration-300 font-bold hover:scale-110 text-sm">
+                                        {{ p }}
+                                    </a>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            
+                            <!-- Next Page -->
+                            {% if pagination.has_next %}
+                            <a href="{{ url_for('search', q=query, mode=search_mode, crop=current_filters.crop, country=current_filters.country, seed_type=current_filters.seed_type, year=current_filters.year, page=page+1, per_page=per_page) }}"
+                               class="w-10 h-10 flex items-center justify-center border border-gray-300 text-gray-700 rounded-lg hover:bg-primary-50 hover:border-primary-500 hover:text-primary-600 transition-all duration-300 font-bold hover:scale-110">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                            {% endif %}
+                            
+                            <!-- Last Page -->
+                            {% if page < pagination.pages %}
+                            <a href="{{ url_for('search', q=query, mode=search_mode, crop=current_filters.crop, country=current_filters.country, seed_type=current_filters.seed_type, year=current_filters.year, page=pagination.pages, per_page=per_page) }}"
+                               class="w-10 h-10 flex items-center justify-center border border-gray-300 text-gray-700 rounded-lg hover:bg-primary-50 hover:border-primary-500 hover:text-primary-600 transition-all duration-300 font-bold hover:scale-110">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Results Per Page Selector -->
+                        <div class="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-2.5 border border-gray-200">
+                            <span class="text-xs text-gray-600 font-medium whitespace-nowrap">Show:</span>
+                            <select onchange="updatePerPage(this.value)" class="border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-primary-100 focus:border-primary-500 font-bold text-gray-700 bg-white transition-all duration-300 hover:border-primary-400 text-sm">
+                                <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+                                <option value="20" {% if per_page == 20 %}selected{% endif %}>20</option>
+                                <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                                <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% else %}
+                <!-- No Results State -->
+                <div class="relative overflow-hidden bg-white rounded-2xl shadow-xl p-10 text-center border border-gray-100">
+                    <div class="absolute inset-0 opacity-5">
+                        <div class="absolute top-10 left-10 w-32 h-32 bg-primary-500 rounded-full"></div>
+                        <div class="absolute bottom-10 right-10 w-48 h-48 bg-purple-500 rounded-full"></div>
+                    </div>
+                    
+                    <div class="relative max-w-md mx-auto">
+                        <div class="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                            <i class="fas fa-search-minus text-4xl text-gray-400"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-3">No Varieties Found</h3>
+                        <p class="text-sm text-gray-600 mb-6">We couldn't find any varieties matching your search criteria. Try adjusting your filters or using a different search mode.</p>
+                        
+                        <div class="flex flex-col sm:flex-row justify-center gap-3">
+                            <a href="{{ url_for('search', mode='cascading') }}" 
+                               class="group px-6 py-3 bg-gradient-to-r from-primary-600 to-purple-600 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-sm">
+                                <i class="fas fa-layer-group mr-2 group-hover:scale-110 transition-transform inline-block"></i>
+                                Try Cascading Search
+                            </a>
+                            <a href="{{ url_for('search', mode='global') }}" 
+                               class="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-all duration-300 hover:scale-105 text-sm">
+                                <i class="fas fa-globe-americas mr-2"></i>
+                                Try Global Search
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            {% else %}
+            <!-- Welcome/Empty Search State -->
+            <div class="relative overflow-hidden bg-gradient-to-br from-white to-primary-50 rounded-2xl shadow-xl p-10 text-center border border-primary-100">
+                <!-- Animated Background Elements -->
+                <div class="absolute inset-0 opacity-5">
+                    <div class="absolute top-20 left-20 w-32 h-32 bg-primary-500 rounded-full animate-bounce-gentle"></div>
+                    <div class="absolute bottom-20 right-20 w-48 h-48 bg-purple-500 rounded-full animate-bounce-gentle" style="animation-delay: 1s;"></div>
+                    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-pink-500 rounded-full animate-bounce-gentle" style="animation-delay: 2s;"></div>
+                </div>
+                
+                <div class="relative max-w-3xl mx-auto">
+                    <div class="w-32 h-32 bg-gradient-to-br from-primary-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl animate-bounce-gentle">
+                        <i class="fas fa-seedling text-5xl text-white"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-gray-900 mb-3">Start Your Discovery</h3>
+                    <p class="text-base text-gray-600 mb-8 leading-relaxed">Search our comprehensive database of crop varieties with advanced filtering and intelligent search modes tailored to your needs.</p>
+                    
+                    <!-- Quick Search Examples Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <a href="{{ url_for('search', q='maize', mode='cascading') }}" 
+                           class="group relative overflow-hidden p-6 bg-white rounded-xl hover:shadow-xl transition-all duration-500 text-left border border-gray-200 hover:border-primary-300 hover:-translate-y-1">
+                            <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-green-100 to-emerald-200 rounded-full opacity-50 -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500"></div>
+                            <div class="relative">
+                                <div class="flex items-center mb-3">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mr-3 shadow-md group-hover:scale-110 transition-transform duration-300">
+                                        <i class="fas fa-leaf text-white text-lg"></i>
+                                    </div>
+                                    <div class="font-bold text-base text-gray-900 group-hover:text-primary-600 transition-colors">Maize Varieties</div>
+                                </div>
+                                <div class="text-xs text-gray-600 leading-relaxed">Explore all maize varieties with intelligent cascading search</div>
+                                <div class="mt-3 inline-flex items-center text-primary-600 font-semibold text-sm">
+                                    Search now <i class="fas fa-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i>
+                                </div>
+                            </div>
+                        </a>
+                        
+                        <a href="{{ url_for('search', q='drought', mode='global') }}" 
+                           class="group relative overflow-hidden p-6 bg-white rounded-xl hover:shadow-xl transition-all duration-500 text-left border border-gray-200 hover:border-primary-300 hover:-translate-y-1">
+                            <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-orange-100 to-amber-200 rounded-full opacity-50 -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500"></div>
+                            <div class="relative">
+                                <div class="flex items-center mb-3">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl flex items-center justify-center mr-3 shadow-md group-hover:scale-110 transition-transform duration-300">
+                                        <i class="fas fa-tint-slash text-white text-lg"></i>
+                                    </div>
+                                    <div class="font-bold text-base text-gray-900 group-hover:text-primary-600 transition-colors">Drought Tolerant</div>
+                                </div>
+                                <div class="text-xs text-gray-600 leading-relaxed">Find varieties with drought-resistant traits using global search</div>
+                                <div class="mt-3 inline-flex items-center text-primary-600 font-semibold text-sm">
+                                    Search now <i class="fas fa-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i>
+                                </div>
+                            </div>
+                        </a>
+                        
+                        <a href="{{ url_for('search', q='rice', mode='cascading') }}" 
+                           class="group relative overflow-hidden p-6 bg-white rounded-xl hover:shadow-xl transition-all duration-500 text-left border border-gray-200 hover:border-primary-300 hover:-translate-y-1">
+                            <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-100 to-cyan-200 rounded-full opacity-50 -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500"></div>
+                            <div class="relative">
+                                <div class="flex items-center mb-3">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center mr-3 shadow-md group-hover:scale-110 transition-transform duration-300">
+                                        <i class="fas fa-seedling text-white text-lg"></i>
+                                    </div>
+                                    <div class="font-bold text-base text-gray-900 group-hover:text-primary-600 transition-colors">Rice Collection</div>
+                                </div>
+                                <div class="text-xs text-gray-600 leading-relaxed">Browse comprehensive rice variety database</div>
+                                <div class="mt-3 inline-flex items-center text-primary-600 font-semibold text-sm">
+                                    Search now <i class="fas fa-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i>
+                                </div>
+                            </div>
+                        </a>
+                        
+                        <a href="{{ url_for('search', q='disease resistant', mode='global') }}" 
+                           class="group relative overflow-hidden p-6 bg-white rounded-xl hover:shadow-xl transition-all duration-500 text-left border border-gray-200 hover:border-primary-300 hover:-translate-y-1">
+                            <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-100 to-pink-200 rounded-full opacity-50 -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500"></div>
+                            <div class="relative">
+                                <div class="flex items-center mb-3">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mr-3 shadow-md group-hover:scale-110 transition-transform duration-300">
+                                        <i class="fas fa-shield-virus text-white text-lg"></i>
+                                    </div>
+                                    <div class="font-bold text-base text-gray-900 group-hover:text-primary-600 transition-colors">Disease Resistant</div>
+                                </div>
+                                <div class="text-xs text-gray-600 leading-relaxed">Discover varieties with disease resistance traits</div>
+                                <div class="mt-3 inline-flex items-center text-primary-600 font-semibold text-sm">
+                                    Search now <i class="fas fa-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    
+                    <!-- Features Highlight -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 border-t border-gray-200">
+                        <div class="text-center">
+                            <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-md">
+                                <i class="fas fa-brain text-white text-xl"></i>
+                            </div>
+                            <div class="font-bold text-gray-900 mb-1 text-sm">Intelligent Search</div>
+                            <div class="text-xs text-gray-600">AI-powered search algorithms</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-md">
+                                <i class="fas fa-filter text-white text-xl"></i>
+                            </div>
+                            <div class="font-bold text-gray-900 mb-1 text-sm">Advanced Filters</div>
+                            <div class="text-xs text-gray-600">Refine by multiple criteria</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-md">
+                                <i class="fas fa-bolt text-white text-xl"></i>
+                            </div>
+                            <div class="font-bold text-gray-900 mb-1 text-sm">Lightning Fast</div>
+                            <div class="text-xs text-gray-600">Instant search results</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Clear search input
+function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchInput').focus();
+}
+
+// Update results per page
+function updatePerPage(value) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('per_page', value);
+    url.searchParams.set('page', '1');
+    window.location.href = url.toString();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit filters when changed (except per_page in sidebar)
+    const filterSelects = document.querySelectorAll('#filterForm select');
+    filterSelects.forEach(select => {
+        if (select.name !== 'per_page') {
+            select.addEventListener('change', function() {
+                document.getElementById('filterForm').submit();
+            });
+        }
+    });
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ctrl + / to focus search
+        if (e.ctrlKey && e.key === '/') {
+            e.preventDefault();
+            document.getElementById('searchInput').focus();
+        }
+        
+        // ESC to clear search
+        if (e.key === 'Escape' && document.activeElement === document.getElementById('searchInput')) {
+            clearSearch();
+        }
+    });
+    
+    // Smooth scroll to results after page load
+    if (window.location.search.includes('page=') && window.scrollY === 0) {
+        setTimeout(() => {
+            window.scrollTo({
+                top: 300,
+                behavior: 'smooth'
+            });
+        }, 100);
+    }
+    
+    // Add search input animation
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('focus', function() {
+        this.parentElement.parentElement.classList.add('scale-105');
+    });
+    searchInput.addEventListener('blur', function() {
+        this.parentElement.parentElement.classList.remove('scale-105');
+    });
+});
+
+// Add parallax effect to floating shapes
+window.addEventListener('scroll', function() {
+    const scrolled = window.pageYOffset;
+    const shapes = document.querySelectorAll('.shape');
+    shapes.forEach((shape, index) => {
+        const speed = 0.5 + (index * 0.2);
+        shape.style.transform = `translateY(${scrolled * speed}px)`;
+    });
+});
+</script>
+
+<style>
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes bounceGentle {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-slide-in {
+    animation: slideIn 0.5s ease-out forwards;
+}
+
+.animate-bounce-gentle {
+    animation: bounceGentle 3s ease-in-out infinite;
+}
+
+.hover-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-2px);
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+    transition-property: transform, box-shadow, border-color, background-color;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #5568d3 0%, #653a8b 100%);
+}
+
+/* Keyboard shortcut styling */
+kbd {
+    font-family: monospace;
+    font-size: 0.75rem;
+}
+
+/* Loading state for forms */
+form.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+</style>
+{% endblock %}

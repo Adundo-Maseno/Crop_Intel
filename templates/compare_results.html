@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Crop+Variety Comparison Results</h1>
+        <p class="text-lg text-gray-600">100% accurate matching using concatenated crop+variety keys</p>
+    </div>
+
+    <!-- Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+        <div class="bg-white rounded-2xl shadow-xl p-4 text-center">
+            <div class="text-xl font-bold text-primary-600 mb-1">{{ results.stats.total_file1 }}</div>
+            <div class="text-sm text-gray-600">File 1 Records</div>
+            <div class="text-xs text-gray-500 truncate">{{ file1_name }}</div>
+        </div>
+        
+        <div class="bg-white rounded-2xl shadow-xl p-4 text-center">
+            <div class="text-xl font-bold text-primary-600 mb-1">{{ results.stats.total_file2 }}</div>
+            <div class="text-sm text-gray-600">File 2 Records</div>
+            <div class="text-xs text-gray-500 truncate">{{ file2_name }}</div>
+        </div>
+        
+        <div class="bg-white rounded-2xl shadow-xl p-4 text-center">
+            <div class="text-xl font-bold text-success-600 mb-1">{{ results.stats.matches_found }}</div>
+            <div class="text-sm text-gray-600">Matches Found</div>
+            <div class="text-xs text-success-600">{{ "%.1f"|format(results.stats.match_rate_file1) }}% match rate</div>
+        </div>
+        
+        <div class="bg-white rounded-2xl shadow-xl p-4 text-center">
+            <div class="text-xl font-bold text-orange-600 mb-1">{{ results.stats.unique_to_file1 }}</div>
+            <div class="text-sm text-gray-600">Unique to File 1</div>
+        </div>
+        
+        <div class="bg-white rounded-2xl shadow-xl p-4 text-center">
+            <div class="text-xl font-bold text-blue-600 mb-1">{{ results.stats.unique_to_file2 }}</div>
+            <div class="text-sm text-gray-600">Unique to File 2</div>
+        </div>
+    </div>
+
+    <!-- Export Buttons -->
+    <div class="bg-white rounded-2xl shadow-xl p-6 mb-8">
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Export Results</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <a href="{{ url_for('export_comparison_matches') }}" 
+               class="bg-gradient-to-br from-green-500 to-emerald-600 text-white py-3 px-6 rounded-xl font-bold hover:shadow-lg transition-all text-center hover:scale-105">
+                <i class="fas fa-download mr-2"></i>Export Matches ({{ results.stats.matches_found }})
+            </a>
+            <a href="{{ url_for('export_comparison_unique1') }}" 
+               class="bg-gradient-to-br from-orange-500 to-amber-600 text-white py-3 px-6 rounded-xl font-bold hover:shadow-lg transition-all text-center hover:scale-105">
+                <i class="fas fa-download mr-2"></i>Export Unique to File 1 ({{ results.stats.unique_to_file1 }})
+            </a>
+            <a href="{{ url_for('export_comparison_unique2') }}" 
+               class="bg-gradient-to-br from-blue-500 to-cyan-600 text-white py-3 px-6 rounded-xl font-bold hover:shadow-lg transition-all text-center hover:scale-105">
+                <i class="fas fa-download mr-2"></i>Export Unique to File 2 ({{ results.stats.unique_to_file2 }})
+            </a>
+        </div>
+    </div>
+
+    <!-- Results Tabs -->
+    <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+        <div class="border-b border-gray-200">
+            <nav class="flex -mb-px">
+                <button onclick="showTab('matches')" 
+                        class="tab-button py-4 px-6 text-center border-b-2 font-medium text-sm border-primary-500 text-primary-600 flex-1">
+                    <i class="fas fa-link mr-2"></i>Matching Records ({{ results.matches|length }})
+                </button>
+                <button onclick="showTab('unique1')" 
+                        class="tab-button py-4 px-6 text-center border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 flex-1">
+                    <i class="fas fa-file-export mr-2"></i>Unique to File 1 ({{ results.stats.unique_to_file1 }})
+                </button>
+                <button onclick="showTab('unique2')" 
+                        class="tab-button py-4 px-6 text-center border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 flex-1">
+                    <i class="fas fa-file-import mr-2"></i>Unique to File 2 ({{ results.stats.unique_to_file2 }})
+                </button>
+            </nav>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="p-6">
+            <!-- Matches Tab -->
+            <div id="matches-tab" class="tab-content">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Matching Records</h3>
+                    <div class="text-sm text-gray-500">
+                        Showing {{ results.matches|length }} of {{ results.stats.matches_found }} matches
+                    </div>
+                </div>
+                
+                {% if results.matches %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">File 1 Crop</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">File 1 Variety</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">File 2 Crop</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">File 2 Variety</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Confidence</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Match Type</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for match in results.matches %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ match.file1_crop if match.file1_crop else 'N/A' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    {{ match.file1_variety }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ match.file2_crop if match.file2_crop else 'N/A' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    {{ match.file2_variety }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-full">
+                                        100%
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        Exact Match
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if results.stats.matches_found > 50 %}
+                <div class="mt-4 p-4 bg-yellow-50 rounded-xl border border-yellow-200 text-center">
+                    <p class="text-sm text-yellow-700">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Showing first 50 matches. Export to see all {{ results.stats.matches_found }} matching records.
+                    </p>
+                </div>
+                {% endif %}
+                
+                {% else %}
+                <div class="text-center py-12">
+                    <i class="fas fa-unlink text-gray-300 text-4xl mb-4"></i>
+                    <p class="text-gray-500 text-lg">No matching records found</p>
+                    <p class="text-gray-400 text-sm mt-2">No crop+variety combinations matched between the two files</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Unique to File 1 Tab -->
+            <div id="unique1-tab" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Records Unique to {{ file1_name }}</h3>
+                    <div class="text-sm text-gray-500">
+                        Showing {{ results.unique_to_file1|length }} of {{ results.stats.unique_to_file1 }} unique records
+                    </div>
+                </div>
+                
+                {% if results.unique_to_file1 %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Crop</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Variety</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Other Data</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for record in results.unique_to_file1 %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ record[results.stats.crop_col_1] if results.stats.crop_col_1 in record and record[results.stats.crop_col_1] else 'N/A' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    {{ record[results.stats.variety_col_1] if results.stats.variety_col_1 in record and record[results.stats.variety_col_1] else 'N/A' }}
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-500">
+                                    <div class="flex flex-wrap gap-1">
+                                        {% for key, value in record.items() %}
+                                            {% if key not in [results.stats.crop_col_1, results.stats.variety_col_1] and value and value != 'N/A' and value != '' %}
+                                            <span class="inline-block bg-gray-100 rounded-full px-2 py-1 text-xs font-semibold text-gray-700">
+                                                {{ key }}: {{ value }}
+                                            </span>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if results.stats.unique_to_file1 > 50 %}
+                <div class="mt-4 p-4 bg-yellow-50 rounded-xl border border-yellow-200 text-center">
+                    <p class="text-sm text-yellow-700">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Showing first 50 unique records. Export to see all {{ results.stats.unique_to_file1 }} records.
+                    </p>
+                </div>
+                {% endif %}
+                
+                {% else %}
+                <div class="text-center py-12">
+                    <i class="fas fa-check-circle text-green-300 text-4xl mb-4"></i>
+                    <p class="text-gray-500 text-lg">No unique records in File 1</p>
+                    <p class="text-gray-400 text-sm mt-2">All records from File 1 were matched in File 2</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Unique to File 2 Tab -->
+            <div id="unique2-tab" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Records Unique to {{ file2_name }}</h3>
+                    <div class="text-sm text-gray-500">
+                        Showing {{ results.unique_to_file2|length }} of {{ results.stats.unique_to_file2 }} unique records
+                    </div>
+                </div>
+                
+                {% if results.unique_to_file2 %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Crop</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Variety</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Other Data</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for record in results.unique_to_file2 %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ record[results.stats.crop_col_2] if results.stats.crop_col_2 in record and record[results.stats.crop_col_2] else 'N/A' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    {{ record[results.stats.variety_col_2] if results.stats.variety_col_2 in record and record[results.stats.variety_col_2] else 'N/A' }}
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-500">
+                                    <div class="flex flex-wrap gap-1">
+                                        {% for key, value in record.items() %}
+                                            {% if key not in [results.stats.crop_col_2, results.stats.variety_col_2] and value and value != 'N/A' and value != '' %}
+                                            <span class="inline-block bg-gray-100 rounded-full px-2 py-1 text-xs font-semibold text-gray-700">
+                                                {{ key }}: {{ value }}
+                                            </span>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if results.stats.unique_to_file2 > 50 %}
+                <div class="mt-4 p-4 bg-yellow-50 rounded-xl border border-yellow-200 text-center">
+                    <p class="text-sm text-yellow-700">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Showing first 50 unique records. Export to see all {{ results.stats.unique_to_file2 }} records.
+                    </p>
+                </div>
+                {% endif %}
+                
+                {% else %}
+                <div class="text-center py-12">
+                    <i class="fas fa-check-circle text-green-300 text-4xl mb-4"></i>
+                    <p class="text-gray-500 text-lg">No unique records in File 2</p>
+                    <p class="text-gray-400 text-sm mt-2">All records from File 2 were matched in File 1</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- New Comparison Button -->
+    <div class="text-center mt-8">
+        <a href="{{ url_for('compare_files') }}" 
+           class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-gradient-to-br from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transition-all hover:scale-105">
+            <i class="fas fa-plus mr-2"></i>Start New Comparison
+        </a>
+    </div>
+</div>
+
+<script>
+function showTab(tabName) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.add('hidden');
+    });
+    
+    // Remove active styles from all buttons
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('border-primary-500', 'text-primary-600');
+        button.classList.add('border-transparent', 'text-gray-500');
+    });
+    
+    // Show selected tab and style button
+    document.getElementById(tabName + '-tab').classList.remove('hidden');
+    event.target.classList.remove('border-transparent', 'text-gray-500');
+    event.target.classList.add('border-primary-500', 'text-primary-600');
+}
+
+// Show matches tab by default
+document.addEventListener('DOMContentLoaded', function() {
+    showTab('matches');
+});
+</script>
+{% endblock %}

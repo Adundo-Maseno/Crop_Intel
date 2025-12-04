@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="bg-white rounded-2xl shadow-xl p-8 mb-8 card-hover">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">
+                    <i class="fas fa-columns text-primary-600 mr-3"></i>Map Master Catalog Columns
+                </h1>
+                <p class="text-gray-600 mt-2">Map your uploaded file columns to the database schema</p>
+            </div>
+            <div class="text-sm text-gray-500">
+                File: <strong>{{ filename }}</strong>
+            </div>
+        </div>
+
+        <!-- Important Notice -->
+        {% if missing_required %}
+        <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-6 mb-6">
+            <div class="flex items-start">
+                <i class="fas fa-exclamation-triangle text-yellow-600 text-xl mr-3 mt-1"></i>
+                <div>
+                    <h3 class="font-semibold text-yellow-800 text-lg mb-2">Required Columns Missing</h3>
+                    <p class="text-yellow-700">
+                        The following required columns were not automatically detected:
+                        <strong>{{ missing_required|join(', ') }}</strong>.
+                        Please map these columns manually to proceed.
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Column Mapping Form -->
+    <div class="bg-white rounded-2xl shadow-xl p-8 card-hover">
+        <form method="POST" action="{{ url_for('process_master_import_route') }}">
+            <input type="hidden" name="filename" value="{{ filename }}">
+            
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Column Mapping</h2>
+            
+            <!-- Auto-detected Mappings -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-robot text-green-600 mr-2"></i>Auto-detected Mappings
+                    <span class="text-sm text-gray-500 ml-2">(Review and adjust if needed)</span>
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for uploaded_col in uploaded_columns %}
+                    <div class="flex items-center justify-between p-4 border-2 border-gray-200 rounded-xl hover:border-primary-300 transition-colors">
+                        <div class="flex-1">
+                            <div class="font-medium text-gray-900">{{ uploaded_col }}</div>
+                            {% if column_mapping.get(uploaded_col) %}
+                            <div class="text-sm text-green-600 flex items-center mt-1">
+                                <i class="fas fa-check-circle mr-1"></i>
+                                Auto-mapped to: <strong class="ml-1">{{ column_mapping[uploaded_col] }}</strong>
+                            </div>
+                            {% else %}
+                            <div class="text-sm text-yellow-600 flex items-center mt-1">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                Not automatically mapped
+                            </div>
+                            {% endif %}
+                        </div>
+                        <select name="map_{{ uploaded_col }}" 
+                                class="ml-4 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-200 focus:border-primary-500 min-w-[200px]">
+                            <option value="">-- Not Mapped --</option>
+                            {% for master_col in master_columns %}
+                            <option value="{{ master_col }}" 
+                                    {% if column_mapping.get(uploaded_col) == master_col %}selected{% endif %}>
+                                {{ master_col }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Required Columns Highlight -->
+            {% if required_columns %}
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-star text-red-600 mr-2"></i>Required Columns
+                </h3>
+                <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+                    <p class="text-red-700 text-sm">
+                        <strong>Important:</strong> The following columns are required for proper system operation:
+                        <span class="font-semibold">{{ required_columns|join(', ') }}</span>. 
+                        Please ensure these are mapped above.
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Action Buttons -->
+            <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+                <a href="{{ url_for('upload_master') }}" 
+                   class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-semibold flex items-center">
+                    <i class="fas fa-arrow-left mr-2"></i>Cancel Upload
+                </a>
+                <button type="submit" 
+                        class="px-8 py-3 bg-gradient-to-r from-primary-600 to-purple-600 text-white rounded-xl hover:from-primary-700 hover:to-purple-700 transition-all duration-300 shadow-lg font-semibold text-lg flex items-center">
+                    <i class="fas fa-database mr-2"></i>Import Master Data
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Help Section -->
+    <div class="bg-white rounded-2xl shadow-xl p-8 mt-8 card-hover">
+        <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+            <i class="fas fa-question-circle text-primary-600 mr-2"></i>Mapping Guide
+        </h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="font-semibold text-gray-800 mb-2">Essential Columns</h4>
+                <ul class="text-sm text-gray-600 space-y-1">
+                    <li><strong>variety_release_name</strong> - The official name of the variety</li>
+                    <li><strong>crop</strong> - Type of crop (maize, rice, wheat, etc.)</li>
+                    <li><strong>country</strong> - Country of release/origin</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-semibold text-gray-800 mb-2">Important Columns</h4>
+                <ul class="text-sm text-gray-600 space-y-1">
+                    <li><strong>year_of_release</strong> - When the variety was released</li>
+                    <li><strong>releasing_entity</strong> - Organization that released it</li>
+                    <li><strong>botanical_name</strong> - Scientific name</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add visual feedback for required columns
+    const requiredColumns = {{ required_columns | tojson }};
+    const selectElements = document.querySelectorAll('select[name^="map_"]');
+    
+    selectElements.forEach(select => {
+        select.addEventListener('change', function() {
+            const optionText = this.options[this.selectedIndex].text;
+            if (requiredColumns.includes(optionText)) {
+                this.parentElement.classList.add('border-green-300', 'bg-green-50');
+            } else {
+                this.parentElement.classList.remove('border-green-300', 'bg-green-50');
+            }
+        });
+        
+        // Trigger change on load to show current state
+        const event = new Event('change');
+        select.dispatchEvent(event);
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,425 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">
+                    <i class="fas fa-eye mr-3 text-green-600"></i>Matching Preview
+                </h1>
+                <p class="text-gray-600 mt-2">Preview the matched data before exporting</p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                    <i class="fas fa-table mr-1"></i>{{ total_rows }} rows
+                </span>
+                <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                    <i class="fas fa-columns mr-1"></i>{{ columns|length }} columns
+                </span>
+            </div>
+        </div>
+
+        <!-- Progress Steps -->
+        <div class="flex items-center justify-center mb-6">
+            <div class="flex items-center">
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <span class="text-xs mt-1 text-gray-600">Upload</span>
+                </div>
+                <div class="w-24 h-1 bg-green-600"></div>
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <span class="text-xs mt-1 text-gray-600">Map Columns</span>
+                </div>
+                <div class="w-24 h-1 bg-green-600"></div>
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center">
+                        3
+                    </div>
+                    <span class="text-xs mt-1 font-medium text-gray-800">Preview</span>
+                </div>
+                <div class="w-24 h-1 bg-gray-300"></div>
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center">
+                        4
+                    </div>
+                    <span class="text-xs mt-1 text-gray-600">Export</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Information -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="text-center p-4 bg-blue-50 rounded-lg">
+                <i class="fas fa-database text-3xl text-blue-600 mb-2"></i>
+                <h3 class="font-semibold text-gray-800">Data Preview</h3>
+                <p class="text-sm text-gray-600 mt-1">Showing first 10 rows of {{ total_rows }} total</p>
+            </div>
+            <div class="text-center p-4 bg-green-50 rounded-lg">
+                <i class="fas fa-check-circle text-3xl text-green-600 mb-2"></i>
+                <h3 class="font-semibold text-gray-800">Matching Complete</h3>
+                <p class="text-sm text-gray-600 mt-1">Data has been matched with master catalog</p>
+            </div>
+            <div class="text-center p-4 bg-purple-50 rounded-lg">
+                <i class="fas fa-download text-3xl text-purple-600 mb-2"></i>
+                <h3 class="font-semibold text-gray-800">Ready for Export</h3>
+                <p class="text-sm text-gray-600 mt-1">Export as Excel when ready</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Preview Table -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-800">Preview Data</h2>
+            <div class="flex space-x-3">
+                <button onclick="scrollToTop()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-arrow-up mr-2"></i>Top
+                </button>
+                <button onclick="scrollToBottom()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-arrow-down mr-2"></i>Bottom
+                </button>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto border border-gray-200 rounded-lg">
+            <table class="min-w-full divide-y divide-gray-200" id="previewTable">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-100 sticky left-0">
+                            #
+                        </th>
+                        {% for column in columns %}
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            {{ column }}
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for row in data %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 bg-white sticky left-0 border-r">
+                            {{ loop.index }}
+                        </td>
+                        {% for column in columns %}
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                            {% set value = row[column] %}
+                            {% if value is none or value == '' %}
+                                <span class="text-gray-300 italic">empty</span>
+                            {% else %}
+                                {{ value }}
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination Info -->
+        <div class="mt-4 flex justify-between items-center text-sm text-gray-600">
+            <div>
+                Showing rows 1 to {{ data|length }} of {{ total_rows }} total rows
+            </div>
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-info-circle text-blue-500"></i>
+                <span>Scroll horizontally to see all columns</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Quality Summary -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4 text-gray-800">Data Quality Summary</h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="text-center p-4 border border-gray-200 rounded-lg">
+                <div class="text-2xl font-bold text-blue-600">{{ quality_stats.completion_rate }}%</div>
+                <div class="text-sm text-gray-600">Data Completion</div>
+            </div>
+            <div class="text-center p-4 border border-gray-200 rounded-lg">
+                <div class="text-2xl font-bold text-green-600">{{ quality_stats.filled_fields }}</div>
+                <div class="text-sm text-gray-600">Filled Fields</div>
+            </div>
+            <div class="text-center p-4 border border-gray-200 rounded-lg">
+                <div class="text-2xl font-bold text-purple-600">{{ columns|length }}</div>
+                <div class="text-sm text-gray-600">Total Columns</div>
+            </div>
+            <div class="text-center p-4 border border-gray-200 rounded-lg">
+                <div class="text-2xl font-bold text-orange-600">{{ total_rows }}</div>
+                <div class="text-sm text-gray-600">Total Rows</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Matching Statistics -->
+    {% if match_stats %}
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4 text-gray-800">Matching Statistics</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="text-center p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div class="text-3xl font-bold text-green-600">{{ match_stats.successful_matches }}</div>
+                <div class="text-sm text-gray-600 mt-1">Successful Matches</div>
+                <div class="text-xs text-gray-500 mt-1">{{ match_stats.success_rate }}% success rate</div>
+            </div>
+            <div class="text-center p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div class="text-3xl font-bold text-red-600">{{ match_stats.failed_matches }}</div>
+                <div class="text-sm text-gray-600 mt-1">Failed Matches</div>
+                <div class="text-xs text-gray-500 mt-1">Not found in catalog</div>
+            </div>
+            <div class="text-center p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div class="text-3xl font-bold text-blue-600">{{ match_stats.total_processed }}</div>
+                <div class="text-sm text-gray-600 mt-1">Total Processed</div>
+                <div class="text-xs text-gray-500 mt-1">All records</div>
+            </div>
+        </div>
+
+        {% if match_stats.crop_mismatches > 0 %}
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+            <div class="flex items-start">
+                <i class="fas fa-exclamation-triangle text-yellow-600 mt-1 mr-3"></i>
+                <div>
+                    <h4 class="font-semibold text-yellow-800">Crop Mismatches Detected</h4>
+                    <p class="text-sm text-yellow-700 mt-1">
+                        {{ match_stats.crop_mismatches }} varieties were found by name but had different crops in the master catalog.
+                        This suggests the variety name exists but under a different crop classification.
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if match_stats.no_crop_provided > 0 %}
+        <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+            <div class="flex items-start">
+                <i class="fas fa-info-circle text-orange-600 mt-1 mr-3"></i>
+                <div>
+                    <h4 class="font-semibold text-orange-800">Missing Crop Data</h4>
+                    <p class="text-sm text-orange-700 mt-1">
+                        {{ match_stats.no_crop_provided }} records were missing crop information, resulting in less reliable name-only matching.
+                        For best results, ensure crop data is provided.
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Action Buttons -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+            <div class="flex space-x-3">
+                <a href="{{ url_for('upload_country') }}" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Upload
+                </a>
+                <a href="{{ url_for('map_columns') }}" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center">
+                    <i class="fas fa-edit mr-2"></i>Edit Mapping
+                </a>
+            </div>
+            <div class="flex space-x-3">
+                <button onclick="downloadSample()" class="px-6 py-3 border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors flex items-center">
+                    <i class="fas fa-file-download mr-2"></i>Download Sample
+                </button>
+                <a href="{{ url_for('export_data') }}" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center">
+                    <i class="fas fa-file-excel mr-2"></i>Export Full Dataset
+                </a>
+            </div>
+        </div>
+
+        <!-- Quick Tips -->
+        <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div class="flex items-start">
+                <i class="fas fa-lightbulb text-yellow-600 mt-1 mr-3"></i>
+                <div>
+                    <h4 class="font-semibold text-yellow-800 mb-2">Before Exporting:</h4>
+                    <ul class="text-yellow-700 text-sm list-disc list-inside space-y-1">
+                        <li>Review the matched data for accuracy</li>
+                        <li>Check that all expected fields have been filled</li>
+                        <li>Verify variety name matches are correct</li>
+                        <li>Download a sample first if you want to test with a smaller dataset</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function scrollToTop() {
+    document.getElementById('previewTable').scrollIntoView({ behavior: 'smooth' });
+}
+
+function scrollToBottom() {
+    const table = document.getElementById('previewTable');
+    table.scrollIntoView({ behavior: 'smooth', block: 'end' });
+}
+
+function downloadSample() {
+    // Create a sample download (first 5 rows)
+    const sampleData = {{ data[:5] | tojson }};
+    const columns = {{ columns | tojson }};
+    
+    // Convert to CSV
+    let csvContent = columns.join(',') + '\n';
+    
+    sampleData.forEach(row => {
+        const rowData = columns.map(col => {
+            const value = row[col];
+            // Handle values that might contain commas
+            if (value && value.toString().includes(',')) {
+                return `"${value}"`;
+            }
+            return value || '';
+        });
+        csvContent += rowData.join(',') + '\n';
+    });
+    
+    // Create and trigger download
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = 'matched_data_sample.csv';
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    
+    // Show notification
+    showNotification('Sample CSV downloaded successfully!', 'success');
+}
+
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+        type === 'success' ? 'bg-green-100 border border-green-400 text-green-700' : 'bg-red-100 border border-red-400 text-red-700'
+    }`;
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-2"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 3000);
+}
+
+// Make table more interactive
+document.addEventListener('DOMContentLoaded', function() {
+    const table = document.getElementById('previewTable');
+    const headers = table.querySelectorAll('thead th');
+    
+    headers.forEach((header, index) => {
+        if (index > 0) { // Don't add to the index column
+            header.style.cursor = 'pointer';
+            header.innerHTML += ' <i class="fas fa-sort text-gray-400 ml-1 text-xs"></i>';
+        }
+    });
+});
+
+// Add horizontal scroll indicators
+let isDown = false;
+let startX;
+let scrollLeft;
+
+const tableContainer = document.querySelector('.overflow-x-auto');
+
+tableContainer.addEventListener('mousedown', (e) => {
+    isDown = true;
+    tableContainer.classList.add('active');
+    startX = e.pageX - tableContainer.offsetLeft;
+    scrollLeft = tableContainer.scrollLeft;
+});
+
+tableContainer.addEventListener('mouseleave', () => {
+    isDown = false;
+    tableContainer.classList.remove('active');
+});
+
+tableContainer.addEventListener('mouseup', () => {
+    isDown = false;
+    tableContainer.classList.remove('active');
+});
+
+tableContainer.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - tableContainer.offsetLeft;
+    const walk = (x - startX) * 2;
+    tableContainer.scrollLeft = scrollLeft - walk;
+});
+</script>
+
+<style>
+.overflow-x-auto {
+    cursor: grab;
+}
+
+.overflow-x-auto.active {
+    cursor: grabbing;
+}
+
+/* Sticky header and first column */
+#previewTable thead th {
+    position: sticky;
+    top: 0;
+    background: #f9fafb;
+    z-index: 10;
+}
+
+#previewTable tbody td:first-child {
+    position: sticky;
+    left: 0;
+    background: white;
+    z-index: 5;
+    border-right: 1px solid #e5e7eb;
+}
+
+/* Scrollbar styling */
+.overflow-x-auto::-webkit-scrollbar {
+    height: 8px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Hover effects */
+#previewTable tbody tr:hover td {
+    background-color: #f9fafb;
+}
+
+#previewTable tbody tr:hover td:first-child {
+    background-color: #f3f4f6;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,537 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header Section -->
+    <div class="relative overflow-hidden bg-gradient-to-br from-success-500 to-success-700 rounded-3xl shadow-2xl p-8 mb-8 animate-fade-in">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32"></div>
+        <div class="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-5 rounded-full -ml-24 -mb-24"></div>
+        
+        <div class="relative z-10 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-database text-white text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-bold text-white mb-2">Master Catalog Upload</h1>
+                    <p class="text-success-100 text-lg">Upload your reference variety database for intelligent matching</p>
+                </div>
+            </div>
+            <a href="{{ url_for('index') }}" 
+               class="hidden md:flex items-center justify-center w-12 h-12 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl transition-all duration-300 group">
+                <i class="fas fa-times text-white text-xl group-hover:rotate-90 transition-transform duration-300"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Upload Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        <!-- Upload Form - Takes 2 columns -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                <div class="bg-gradient-to-r from-gray-50 to-blue-50 px-8 py-6 border-b border-gray-200">
+                    <h2 class="text-2xl font-bold text-gray-900 flex items-center">
+                        <span class="w-2 h-8 bg-gradient-to-b from-success-500 to-success-600 rounded-full mr-3"></span>
+                        Upload Excel File
+                    </h2>
+                    <p class="text-gray-600 mt-1 ml-5">Select your master catalog file to begin</p>
+                </div>
+                
+                <form method="POST" enctype="multipart/form-data" class="p-8" id="uploadForm">
+                    <!-- Drag & Drop Area -->
+                    <div class="mb-6">
+                        <label for="file" class="block">
+                            <div class="group relative flex flex-col items-center justify-center w-full h-80 border-3 border-dashed border-gray-300 rounded-2xl cursor-pointer bg-gradient-to-br from-gray-50 to-blue-50/30 hover:from-blue-50 hover:to-blue-100/50 transition-all duration-300">
+                                <!-- Upload Icon & Text -->
+                                <div class="flex flex-col items-center justify-center py-10 px-6 text-center">
+                                    <div class="relative mb-6">
+                                        <div class="absolute inset-0 bg-gradient-to-br from-success-400 to-success-600 rounded-3xl blur-xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
+                                        <div class="relative w-24 h-24 bg-gradient-to-br from-success-500 to-success-600 rounded-3xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                            <i class="fas fa-cloud-upload-alt text-white text-4xl"></i>
+                                        </div>
+                                    </div>
+                                    
+                                    <p class="mb-3 text-lg font-semibold text-gray-700">
+                                        <span class="text-success-600">Click to upload</span> or drag and drop
+                                    </p>
+                                    <p class="text-sm text-gray-500 mb-2">Excel files only (.xlsx, .xls)</p>
+                                    <div class="flex items-center space-x-4 text-xs text-gray-400 mt-3">
+                                        <span class="flex items-center">
+                                            <i class="fas fa-check-circle text-success-500 mr-1"></i>
+                                            Max 16MB
+                                        </span>
+                                        <span class="flex items-center">
+                                            <i class="fas fa-check-circle text-success-500 mr-1"></i>
+                                            Auto-detect columns
+                                        </span>
+                                        <span class="flex items-center">
+                                            <i class="fas fa-check-circle text-success-500 mr-1"></i>
+                                            Secure upload
+                                        </span>
+                                    </div>
+                                </div>
+                                <input id="file" name="file" type="file" class="hidden" accept=".xlsx,.xls" required />
+                            </div>
+                        </label>
+                        
+                        <!-- File Info Display -->
+                        <div id="fileName" class="hidden mt-4 p-4 bg-success-50 border border-success-200 rounded-xl animate-slide-in">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-gradient-to-br from-success-500 to-success-600 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-file-excel text-white"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-success-900" id="fileNameText"></p>
+                                        <p class="text-sm text-success-600" id="fileSizeText"></p>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="clearFile()" class="text-success-600 hover:text-success-800 transition-colors">
+                                    <i class="fas fa-times-circle text-xl"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div id="uploadProgress" class="hidden mb-6">
+                        <div class="flex justify-between text-sm font-medium text-gray-700 mb-2">
+                            <span class="flex items-center">
+                                <i class="fas fa-spinner fa-spin mr-2 text-primary-600"></i>
+                                Uploading your file...
+                            </span>
+                            <span id="progressPercent" class="text-primary-600">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                            <div id="progressBar" class="bg-gradient-to-r from-primary-500 to-success-500 h-3 rounded-full transition-all duration-500 shadow-lg" style="width: 0%"></div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2 text-center">Please wait while we process your master catalog...</p>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <a href="{{ url_for('index') }}" 
+                           class="flex-1 px-6 py-4 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 text-center font-medium group">
+                            <i class="fas fa-arrow-left mr-2 group-hover:-translate-x-1 transition-transform inline-block"></i>
+                            Back to Dashboard
+                        </a>
+                        <button type="submit" id="uploadButton" 
+                                class="flex-1 px-6 py-4 bg-gradient-to-r from-success-500 to-success-600 hover:from-success-600 hover:to-success-700 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center font-medium">
+                            <i class="fas fa-upload mr-2"></i>
+                            Upload Master Catalog
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Instructions Sidebar -->
+        <div class="lg:col-span-1 space-y-6">
+            <!-- File Requirements -->
+            <div class="bg-white rounded-2xl shadow-lg border border-blue-100 overflow-hidden group hover-lift">
+                <div class="bg-gradient-to-r from-primary-500 to-primary-600 px-6 py-4">
+                    <h3 class="font-bold text-white flex items-center">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        File Requirements
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-primary-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700 text-sm">Excel format (.xlsx or .xls)</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-primary-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700 text-sm">Maximum file size: 16MB</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-primary-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700 text-sm">First row must contain headers</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-primary-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700 text-sm">Columns auto-detected</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Expected Columns -->
+            <div class="bg-white rounded-2xl shadow-lg border border-success-100 overflow-hidden group hover-lift">
+                <div class="bg-gradient-to-r from-success-500 to-success-600 px-6 py-4">
+                    <h3 class="font-bold text-white flex items-center">
+                        <i class="fas fa-columns mr-2"></i>
+                        Expected Columns
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <p class="text-sm text-gray-600 mb-4">Case-insensitive column names:</p>
+                    <div class="grid grid-cols-1 gap-2">
+                        <div class="flex items-center text-sm">
+                            <span class="w-2 h-2 bg-success-500 rounded-full mr-2"></span>
+                            <span class="text-gray-700">variety_release_name</span>
+                        </div>
+                        <div class="flex items-center text-sm">
+                            <span class="w-2 h-2 bg-success-500 rounded-full mr-2"></span>
+                            <span class="text-gray-700">crop</span>
+                        </div>
+                        <div class="flex items-center text-sm">
+                            <span class="w-2 h-2 bg-success-500 rounded-full mr-2"></span>
+                            <span class="text-gray-700">country</span>
+                        </div>
+                        <div class="flex items-center text-sm">
+                            <span class="w-2 h-2 bg-success-500 rounded-full mr-2"></span>
+                            <span class="text-gray-700">botanical_name</span>
+                        </div>
+                        <div class="flex items-center text-sm">
+                            <span class="w-2 h-2 bg-success-500 rounded-full mr-2"></span>
+                            <span class="text-gray-700">seed_type</span>
+                        </div>
+                        <div class="flex items-center text-sm">
+                            <span class="w-2 h-2 bg-success-500 rounded-full mr-2"></span>
+                            <span class="text-gray-700">year_of_release</span>
+                        </div>
+                        <div class="flex items-center text-sm">
+                            <span class="w-2 h-2 bg-success-500 rounded-full mr-2"></span>
+                            <span class="text-gray-700">releasing_entity</span>
+                        </div>
+                        <div class="flex items-center text-sm">
+                            <span class="w-2 h-2 bg-success-500 rounded-full mr-2"></span>
+                            <span class="text-gray-700">maintainer</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Tips -->
+            <div class="bg-white rounded-2xl shadow-lg border border-warning-100 overflow-hidden group hover-lift">
+                <div class="bg-gradient-to-r from-warning-500 to-warning-600 px-6 py-4">
+                    <h3 class="font-bold text-white flex items-center">
+                        <i class="fas fa-lightbulb mr-2"></i>
+                        Pro Tips
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <i class="fas fa-star text-warning-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700 text-sm">Use consistent variety names</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-star text-warning-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700 text-sm">Standardize country names</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-star text-warning-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700 text-sm">Complete all fields possible</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-exclamation-triangle text-warning-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700 text-sm font-medium">Replaces existing data</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Next Steps -->
+            <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg overflow-hidden hover-lift">
+                <div class="p-6 text-white">
+                    <h3 class="font-bold flex items-center mb-4">
+                        <i class="fas fa-forward mr-2"></i>
+                        What's Next?
+                    </h3>
+                    <ul class="space-y-3 text-sm">
+                        <li class="flex items-center">
+                            <span class="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center mr-3 text-xs font-bold">1</span>
+                            <span class="text-purple-100">Upload country catalogs</span>
+                        </li>
+                        <li class="flex items-center">
+                            <span class="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center mr-3 text-xs font-bold">2</span>
+                            <span class="text-purple-100">Verify data in search</span>
+                        </li>
+                        <li class="flex items-center">
+                            <span class="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center mr-3 text-xs font-bold">3</span>
+                            <span class="text-purple-100">Check analytics dashboard</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Uploads History -->
+    <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+        <div class="bg-gradient-to-r from-gray-50 to-purple-50 px-8 py-6 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-history text-white"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">Upload History</h2>
+                        <p class="text-sm text-gray-600">Recent master catalog uploads</p>
+                    </div>
+                </div>
+                {% if stats.recent_uploads %}
+                <span class="px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
+                    {{ stats.recent_uploads|length }} uploads
+                </span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="p-8">
+            {% if stats.recent_uploads %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead>
+                        <tr class="border-b-2 border-gray-200">
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                                Filename
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                                Records
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                                Upload Date
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                                Status
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for upload in stats.recent_uploads %}
+                        <tr class="group hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-gradient-to-br from-success-500 to-success-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-file-excel text-white"></i>
+                                    </div>
+                                    <span class="text-sm font-semibold text-gray-900">{{ upload.filename }}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-700">
+                                    <i class="fas fa-layer-group mr-1"></i>
+                                    {{ upload.record_count }} records
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-600">
+                                <i class="fas fa-clock mr-2 text-gray-400"></i>
+                                {{ upload.uploaded_at.strftime('%b %d, %Y at %H:%M') }}
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-success-100 text-success-700">
+                                    <i class="fas fa-check-circle mr-1"></i>
+                                    Completed
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-16">
+                <div class="relative inline-block mb-6">
+                    <div class="absolute inset-0 bg-gradient-to-br from-gray-400 to-gray-600 rounded-3xl blur-xl opacity-10"></div>
+                    <div class="relative w-24 h-24 bg-gradient-to-br from-gray-200 to-gray-300 rounded-3xl flex items-center justify-center">
+                        <i class="fas fa-database text-gray-400 text-4xl"></i>
+                    </div>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">No Uploads Yet</h3>
+                <p class="text-gray-500 mb-6">Upload your first master catalog to get started</p>
+                <button onclick="document.getElementById('file').click()" 
+                        class="px-6 py-3 bg-gradient-to-r from-success-500 to-success-600 text-white rounded-xl hover:shadow-lg transition-all duration-300 inline-flex items-center">
+                    <i class="fas fa-upload mr-2"></i>
+                    Upload Now
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('file');
+    const fileName = document.getElementById('fileName');
+    const fileNameText = document.getElementById('fileNameText');
+    const fileSizeText = document.getElementById('fileSizeText');
+    const uploadForm = document.getElementById('uploadForm');
+    const uploadProgress = document.getElementById('uploadProgress');
+    const progressBar = document.getElementById('progressBar');
+    const progressPercent = document.getElementById('progressPercent');
+    const uploadButton = document.getElementById('uploadButton');
+
+    // File selection handler
+    fileInput.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            const file = e.target.files[0];
+            
+            // Validate file type
+            const validTypes = ['.xlsx', '.xls'];
+            const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+            if (!validTypes.includes(fileExtension)) {
+                showAlert('Please select an Excel file (.xlsx or .xls)', 'error');
+                fileInput.value = '';
+                fileName.classList.add('hidden');
+                return;
+            }
+            
+            // Validate file size (16MB)
+            const maxSize = 16 * 1024 * 1024;
+            if (file.size > maxSize) {
+                showAlert('File size exceeds 16MB limit', 'error');
+                fileInput.value = '';
+                fileName.classList.add('hidden');
+                return;
+            }
+            
+            // Display file info
+            fileNameText.textContent = file.name;
+            fileSizeText.textContent = formatFileSize(file.size);
+            fileName.classList.remove('hidden');
+        }
+    });
+
+    // Clear file function
+    window.clearFile = function() {
+        fileInput.value = '';
+        fileName.classList.add('hidden');
+    };
+
+    // Form submission with progress
+    uploadForm.addEventListener('submit', function(e) {
+        if (!fileInput.files.length) {
+            e.preventDefault();
+            showAlert('Please select a file to upload', 'error');
+            return;
+        }
+
+        // Show progress bar
+        uploadProgress.classList.remove('hidden');
+        uploadButton.disabled = true;
+        uploadButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+        uploadButton.classList.add('opacity-75', 'cursor-not-allowed');
+
+        // Simulate progress
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress >= 95) {
+                progress = 95;
+                clearInterval(interval);
+            }
+            progressBar.style.width = progress + '%';
+            progressPercent.textContent = Math.round(progress) + '%';
+        }, 200);
+    });
+
+    // Drag and drop functionality
+    const dropArea = document.querySelector('label[for="file"] > div');
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight() {
+        dropArea.classList.add('border-success-400', 'bg-success-50', 'scale-105');
+    }
+
+    function unhighlight() {
+        dropArea.classList.remove('border-success-400', 'bg-success-50', 'scale-105');
+    }
+
+    dropArea.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        fileInput.files = files;
+        
+        const event = new Event('change');
+        fileInput.dispatchEvent(event);
+    }
+
+    // Utility functions
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function showAlert(message, type) {
+        const existingAlert = document.querySelector('.alert-message');
+        if (existingAlert) existingAlert.remove();
+
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert-message fixed top-24 right-8 p-4 rounded-xl shadow-2xl z-50 animate-slide-in ${
+            type === 'error' 
+                ? 'bg-red-50 border-2 border-red-500 text-red-700' 
+                : 'bg-success-50 border-2 border-success-500 text-success-700'
+        }`;
+        alertDiv.innerHTML = `
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center ${
+                    type === 'error' ? 'bg-red-100' : 'bg-success-100'
+                }">
+                    <i class="fas ${type === 'error' ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i>
+                </div>
+                <span class="font-medium">${message}</span>
+                <button onclick="this.parentElement.parentElement.remove()" class="ml-4 hover:opacity-75">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(alertDiv);
+        setTimeout(() => alertDiv.remove(), 5000);
+    }
+});
+</script>
+
+<style>
+.alert-message {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+label[for="file"] > div {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.border-3 {
+    border-width: 3px;
+}
+</style>
+{% endblock %}

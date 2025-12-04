@@ -1,0 +1,17 @@
+Flask
+Flask-SQLAlchemy
+Flask-WTF
+Flask-JWT-Extended
+Flask-RESTful
+pandas
+openpyxl
+rapidfuzz
+python-dotenv
+WTForms
+scikit-learn
+numpy
+python-dateutil
+phonenumbers
+unidecode
+thefuzz
+flask-cors

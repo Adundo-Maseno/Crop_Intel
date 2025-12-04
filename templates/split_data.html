@@ -1,0 +1,456 @@
+<!-- templates/split_data.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+/* Button and gradient styles */
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.card-hover {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.hover-lift:hover {
+    transform: translateY(-2px);
+}
+
+button[type="submit"],
+.submit-button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);
+}
+
+button[type="submit"]:hover,
+.submit-button:hover {
+    box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+    transform: translateY(-2px);
+}
+
+.text-primary-600 {
+    color: #667eea;
+}
+
+.text-primary-500 {
+    color: #764ba2;
+}
+
+.bg-primary-50 {
+    background-color: #f5f7ff;
+}
+
+.bg-primary-500 {
+    background-color: #667eea;
+}
+
+.from-primary-50 {
+    --tw-gradient-from: #f5f7ff;
+}
+
+.to-purple-50 {
+    --tw-gradient-to: #faf5ff;
+}
+
+.focus\:ring-primary-500:focus {
+    outline: none;
+    ring: 2px solid #667eea;
+    border-color: transparent;
+}
+</style>
+
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Automated Data Splitter</h1>
+        <p class="text-lg text-gray-600">Create separate sheets from your uploaded file based on any column</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Upload Form -->
+        <div class="lg:col-span-2 bg-white rounded-2xl shadow-xl p-6 card-hover">
+            <h2 class="text-xl font-bold text-gray-900 mb-6">Upload & Configure</h2>
+            
+            <form method="POST" enctype="multipart/form-data" class="space-y-6" id="splitForm">
+                <!-- File Upload -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Select Excel File
+                    </label>
+                    <input type="file" name="file" accept=".xlsx,.xls" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                           required
+                           onchange="previewColumns(this)">
+                    <p class="text-xs text-gray-500 mt-1">Supported formats: .xlsx, .xls</p>
+                </div>
+
+                <!-- Column Selection (will be populated by JavaScript) -->
+                <div id="columnSelection" class="hidden">
+                    <!-- Split Column Selection -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Split By Column
+                        </label>
+                        <select name="split_column" 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                                required
+                                onchange="updateColumnPreview(this)">
+                            <option value="">Select a column to split by...</option>
+                        </select>
+                        <div id="columnPreview" class="mt-2 p-3 bg-gray-50 rounded-lg hidden">
+                            <p class="text-sm text-gray-600" id="previewText"></p>
+                        </div>
+                    </div>
+
+                    <!-- File Prefix -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            File Name Prefix
+                        </label>
+                        <input type="text" name="file_prefix" 
+                               placeholder="e.g., Zambia, Kenya_Data, CropAnalysis"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all">
+                        <p class="text-xs text-gray-500 mt-1">
+                            This will be prepended to all generated files. Example: "Zambia_Maize.xlsx"
+                        </p>
+                    </div>
+
+                    <!-- Output Type -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Output Type
+                        </label>
+                        <div class="space-y-2">
+                            <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                <input type="radio" name="output_type" value="single_file" checked 
+                                       class="text-primary-600 focus:ring-primary-500">
+                                <div class="ml-3">
+                                    <span class="text-gray-700 font-medium">Single Excel file</span>
+                                    <p class="text-sm text-gray-500">Multiple sheets in one file</p>
+                                </div>
+                            </label>
+                            <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                <input type="radio" name="output_type" value="multiple_files"
+                                       class="text-primary-600 focus:ring-primary-500">
+                                <div class="ml-3">
+                                    <span class="text-gray-700 font-medium">Multiple Excel files</span>
+                                    <p class="text-sm text-gray-500">Individual files in a ZIP archive</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Options -->
+                    <div class="border-t pt-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Advanced Options</h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Minimum Records per Sheet
+                                </label>
+                                <input type="number" name="min_records_per_sheet" value="1" min="1"
+                                       class="w-32 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                                <p class="text-xs text-gray-500 mt-1">Exclude groups with fewer records</p>
+                            </div>
+
+                            <label class="flex items-center">
+                                <input type="checkbox" name="include_summary" checked
+                                       class="text-primary-600 focus:ring-primary-500">
+                                <span class="ml-2 text-gray-700">Include summary sheet with statistics</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" 
+                            class="w-full submit-button">
+                        Generate Sheets
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Instructions & Preview -->
+        <div class="space-y-6">
+            <!-- How It Works -->
+            <div style="background: linear-gradient(135deg, #f5f7ff 0%, #faf5ff 100%);" class="rounded-2xl p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">How It Works</h2>
+                
+                <div class="space-y-4">
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center flex-shrink-0 text-sm">
+                            1
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900">Upload File</h3>
+                            <p class="text-gray-600 text-sm">Upload your crop variety Excel file</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center flex-shrink-0 text-sm">
+                            2
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900">Choose Column</h3>
+                            <p class="text-gray-600 text-sm">Select which column to split the data by</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center flex-shrink-0 text-sm">
+                            3
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900">Configure</h3>
+                            <p class="text-gray-600 text-sm">Set file naming and output options</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center flex-shrink-0 text-sm">
+                            4
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900">Generate & Download</h3>
+                            <p class="text-gray-600 text-sm">Get your organized data files</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column Suggestions -->
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <h3 class="font-bold text-gray-900 mb-3">Recommended Columns for Splitting</h3>
+                <ul class="text-sm text-gray-600 space-y-2">
+                    <li class="flex items-start">
+                        <i class="fas fa-seedling text-green-500 mt-1 mr-2"></i>
+                        <div>
+                            <span class="font-medium">Crop</span>
+                            <p class="text-xs text-gray-500">Maize, Wheat, Rice, etc.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-flag text-blue-500 mt-1 mr-2"></i>
+                        <div>
+                            <span class="font-medium">Country</span>
+                            <p class="text-xs text-gray-500">Zambia, Kenya, Uganda, etc.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-building text-purple-500 mt-1 mr-2"></i>
+                        <div>
+                            <span class="font-medium">Releasing Entity</span>
+                            <p class="text-xs text-gray-500">KALRO, CIMMYT, IITA, etc.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-calendar text-orange-500 mt-1 mr-2"></i>
+                        <div>
+                            <span class="font-medium">Year of Release</span>
+                            <p class="text-xs text-gray-500">2020, 2021, 2022, etc.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-tag text-red-500 mt-1 mr-2"></i>
+                        <div>
+                            <span class="font-medium">Seed Type</span>
+                            <p class="text-xs text-gray-500">Hybrid, Open Pollinated, etc.</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Naming Examples -->
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <h3 class="font-bold text-gray-900 mb-3">Naming Examples</h3>
+                <div class="space-y-2 text-sm">
+                    <div class="p-2 bg-gray-50 rounded-lg">
+                        <p class="font-medium text-gray-700">Prefix: "Zambia"</p>
+                        <p class="text-gray-600">Split by: "Crop"</p>
+                        <p class="text-primary-600 font-medium">→ Zambia_Maize.xlsx</p>
+                        <p class="text-primary-600 font-medium">→ Zambia_Wheat.xlsx</p>
+                    </div>
+                    <div class="p-2 bg-gray-50 rounded-lg">
+                        <p class="font-medium text-gray-700">Prefix: "Kenya_Data"</p>
+                        <p class="text-gray-600">Split by: "Releasing Entity"</p>
+                        <p class="text-primary-600 font-medium">→ Kenya_Data_KALRO.xlsx</p>
+                        <p class="text-primary-600 font-medium">→ Kenya_Data_CIMMYT.xlsx</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function previewColumns(fileInput) {
+    const columnSelection = document.getElementById('columnSelection');
+    const columnPreview = document.getElementById('columnPreview');
+    const previewText = document.getElementById('previewText');
+    
+    if (fileInput.files.length > 0) {
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        
+        // Show loading state
+        columnSelection.classList.remove('hidden');
+        columnSelection.innerHTML = `
+            <div class="flex items-center justify-center p-8">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" style="border-color: #667eea;"></div>
+                <span class="ml-3 text-gray-600">Analyzing file columns...</span>
+            </div>
+        `;
+        
+        fetch('/api/preview_columns', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                columnSelection.innerHTML = `
+                    <div class="text-center p-4 text-red-600">
+                        <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+                        <p>Error analyzing file: ${data.error}</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Build the form with column selection
+            columnSelection.innerHTML = `
+                <!-- Split Column Selection -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Split By Column
+                    </label>
+                    <select name="split_column" 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                            required
+                            onchange="updateColumnPreview(this)">
+                        <option value="">Select a column to split by...</option>
+                        ${data.columns.map(col => `
+                            <option value="${col.name}" 
+                                    data-unique="${col.unique_values}" 
+                                    data-sample="${col.sample_values.join(', ')}">
+                                ${col.name} (${col.unique_values} unique values)
+                            </option>
+                        `).join('')}
+                    </select>
+                    <div id="columnPreview" class="mt-2 p-3 bg-gray-50 rounded-lg hidden">
+                        <p class="text-sm text-gray-600" id="previewText"></p>
+                    </div>
+                </div>
+
+                <!-- File Prefix -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        File Name Prefix
+                    </label>
+                    <input type="text" name="file_prefix" 
+                           placeholder="e.g., Zambia, Kenya_Data, CropAnalysis"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all">
+                    <p class="text-xs text-gray-500 mt-1">
+                        This will be prepended to all generated files. Example: "Zambia_Maize.xlsx"
+                    </p>
+                </div>
+
+                <!-- Output Type -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Output Type
+                    </label>
+                    <div class="space-y-2">
+                        <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input type="radio" name="output_type" value="single_file" checked 
+                                   class="text-primary-600 focus:ring-primary-500">
+                            <div class="ml-3">
+                                <span class="text-gray-700 font-medium">Single Excel file</span>
+                                <p class="text-sm text-gray-500">Multiple sheets in one file</p>
+                            </div>
+                        </label>
+                        <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input type="radio" name="output_type" value="multiple_files"
+                                   class="text-primary-600 focus:ring-primary-500">
+                            <div class="ml-3">
+                                <span class="text-gray-700 font-medium">Multiple Excel files</span>
+                                <p class="text-sm text-gray-500">Individual files in a ZIP archive</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Advanced Options -->
+                <div class="border-t pt-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Advanced Options</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Minimum Records per Sheet
+                            </label>
+                            <input type="number" name="min_records_per_sheet" value="1" min="1"
+                                   class="w-32 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                            <p class="text-xs text-gray-500 mt-1">Exclude groups with fewer records</p>
+                        </div>
+
+                        <label class="flex items-center">
+                            <input type="checkbox" name="include_summary" checked
+                                   class="text-primary-600 focus:ring-primary-500">
+                            <span class="ml-2 text-gray-700">Include summary sheet with statistics</span>
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" 
+                        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px; border-radius: 12px; font-weight: bold; box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3); border: none; cursor: pointer; width: 100%; transition: all 0.3s;"
+                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(102, 126, 234, 0.4)';"
+                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(102, 126, 234, 0.3)';">
+                    Generate Sheets
+                </button>
+            `;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            columnSelection.innerHTML = `
+                <div class="text-center p-4 text-red-600">
+                    <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+                    <p>Error analyzing file. Please try again.</p>
+                </div>
+            `;
+        });
+    }
+}
+
+function updateColumnPreview(select) {
+    const columnPreview = document.getElementById('columnPreview');
+    const previewText = document.getElementById('previewText');
+    
+    if (select.value) {
+        const selectedOption = select.options[select.selectedIndex];
+        const uniqueCount = selectedOption.getAttribute('data-unique');
+        const sampleValues = selectedOption.getAttribute('data-sample');
+        
+        previewText.innerHTML = `
+            <strong>${uniqueCount} unique values</strong> will create ${uniqueCount} separate sheets/files.<br>
+            <span class="text-xs">Sample values: ${sampleValues}</span>
+        `;
+        columnPreview.classList.remove('hidden');
+    } else {
+        columnPreview.classList.add('hidden');
+    }
+}
+</script>
+{% endblock %}

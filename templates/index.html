@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Welcome Banner -->
+        <div class="text-center mb-12 animate-fade-in">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                Welcome to <span class="text-gradient">CropIntel</span>
+            </h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                Advanced crop variety intelligence system powered by AI-driven matching algorithms
+            </p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <!-- Total Varieties Card -->
+            <div class="group bg-white rounded-2xl shadow-lg hover-lift p-6 border border-gray-100 overflow-hidden relative">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-success-100 to-success-50 rounded-full -mr-16 -mt-16 opacity-50 group-hover:scale-110 transition-transform duration-300"></div>
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="p-3 bg-gradient-to-br from-success-500 to-success-600 rounded-xl shadow-lg">
+                            <i class="fas fa-seedling text-white text-2xl"></i>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Varieties</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-1">{{ stats.total_varieties }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center text-sm">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success-100 text-success-800">
+                            <i class="fas fa-arrow-up mr-1"></i>
+                            Active
+                        </span>
+                        <span class="ml-2 text-gray-500">in master catalog</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Quality Card -->
+            <div class="group bg-white rounded-2xl shadow-lg hover-lift p-6 border border-gray-100 overflow-hidden relative">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-100 to-primary-50 rounded-full -mr-16 -mt-16 opacity-50 group-hover:scale-110 transition-transform duration-300"></div>
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="p-3 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-lg">
+                            <i class="fas fa-chart-line text-white text-2xl"></i>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Match Quality</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-1">100%</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center text-sm">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
+                            <i class="fas fa-check mr-1"></i>
+                            Excellent
+                        </span>
+                        <span class="ml-2 text-gray-500">accuracy rate</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Processing Speed Card -->
+            <div class="group bg-white rounded-2xl shadow-lg hover-lift p-6 border border-gray-100 overflow-hidden relative">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-100 to-purple-50 rounded-full -mr-16 -mt-16 opacity-50 group-hover:scale-110 transition-transform duration-300"></div>
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg">
+                            <i class="fas fa-bolt text-white text-2xl"></i>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Avg. Speed</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-1">&lt;2s</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center text-sm">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                            <i class="fas fa-tachometer-alt mr-1"></i>
+                            Fast
+                        </span>
+                        <span class="ml-2 text-gray-500">per record</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions & Recent Activity -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+            <!-- Quick Actions - Takes 2 columns -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-gray-900">Quick Actions</h3>
+                        <div class="w-12 h-1 bg-gradient-to-r from-primary-500 to-purple-500 rounded-full"></div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Upload Master Catalog -->
+                        <a href="{{ url_for('upload_master') }}" class="group relative overflow-hidden bg-gradient-to-br from-success-500 to-success-600 rounded-xl p-6 text-white hover-lift shadow-lg">
+                            <div class="absolute top-0 right-0 w-24 h-24 bg-white opacity-10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500"></div>
+                            <div class="relative z-10">
+                                <div class="flex items-center justify-between mb-3">
+                                    <i class="fas fa-database text-3xl"></i>
+                                    <i class="fas fa-arrow-right text-xl opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-300"></i>
+                                </div>
+                                <h4 class="text-lg font-semibold mb-2">Master Catalog</h4>
+                                <p class="text-sm text-success-100">Upload and manage reference variety data</p>
+                            </div>
+                        </a>
+
+                        <!-- Upload Country Data -->
+                        <a href="{{ url_for('upload_country') }}" class="group relative overflow-hidden bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl p-6 text-white hover-lift shadow-lg">
+                            <div class="absolute top-0 right-0 w-24 h-24 bg-white opacity-10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500"></div>
+                            <div class="relative z-10">
+                                <div class="flex items-center justify-between mb-3">
+                                    <i class="fas fa-upload text-3xl"></i>
+                                    <i class="fas fa-arrow-right text-xl opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-300"></i>
+                                </div>
+                                <h4 class="text-lg font-semibold mb-2">Upload Data</h4>
+                                <p class="text-sm text-primary-100">Import country-specific variety records</p>
+                            </div>
+                        </a>
+
+                        <!-- Search Varieties -->
+                        <a href="{{ url_for('search') }}" class="group relative overflow-hidden bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white hover-lift shadow-lg">
+                            <div class="absolute top-0 right-0 w-24 h-24 bg-white opacity-10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500"></div>
+                            <div class="relative z-10">
+                                <div class="flex items-center justify-between mb-3">
+                                    <i class="fas fa-search text-3xl"></i>
+                                    <i class="fas fa-arrow-right text-xl opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-300"></i>
+                                </div>
+                                <h4 class="text-lg font-semibold mb-2">Search Varieties</h4>
+                                <p class="text-sm text-purple-100">Find and explore crop variety data</p>
+                            </div>
+                        </a>
+
+                        <!-- Data Analytics -->
+                        <a href="{{ url_for('data_quality') }}" class="group relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white hover-lift shadow-lg">
+                            <div class="absolute top-0 right-0 w-24 h-24 bg-white opacity-10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500"></div>
+                            <div class="relative z-10">
+                                <div class="flex items-center justify-between mb-3">
+                                    <i class="fas fa-chart-pie text-3xl"></i>
+                                    <i class="fas fa-arrow-right text-xl opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-300"></i>
+                                </div>
+                                <h4 class="text-lg font-semibold mb-2">Analytics</h4>
+                                <p class="text-sm text-orange-100">View insights and quality metrics</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Uploads -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100 h-full">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold text-gray-900">Recent Activity</h3>
+                        <span class="inline-flex items-center justify-center w-8 h-8 bg-primary-100 rounded-full">
+                            <i class="fas fa-clock text-primary-600 text-sm"></i>
+                        </span>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        {% if stats.recent_uploads %}
+                            {% for upload in stats.recent_uploads %}
+                            <div class="group p-4 rounded-xl hover:bg-gray-50 transition-colors border border-gray-100">
+                                <div class="flex items-start space-x-3">
+                                    <div class="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-primary-500 to-purple-500 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-file-excel text-white text-sm"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-semibold text-gray-900 truncate">{{ upload.filename }}</p>
+                                        <p class="text-xs text-gray-500 mt-1">
+                                            <i class="fas fa-calendar-alt mr-1"></i>
+                                            {{ upload.uploaded_at.strftime('%b %d, %Y') }}
+                                        </p>
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 mt-2">
+                                            <i class="fas fa-layer-group mr-1"></i>
+                                            {{ upload.record_count }} records
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-8">
+                                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <i class="fas fa-inbox text-gray-400 text-2xl"></i>
+                                </div>
+                                <p class="text-gray-500 text-sm">No recent uploads</p>
+                                <p class="text-gray-400 text-xs mt-1">Start by uploading data</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-gray-900 mb-3">Powerful Features</h2>
+                <p class="text-gray-600">Everything you need for crop variety data management</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="text-center group">
+                    <div class="relative inline-block mb-4">
+                        <div class="absolute inset-0 bg-gradient-to-br from-success-400 to-success-600 rounded-2xl blur opacity-25 group-hover:opacity-40 transition-opacity duration-300"></div>
+                        <div class="relative w-20 h-20 bg-gradient-to-br from-success-500 to-success-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            <i class="fas fa-exchange-alt text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Smart Data Matching</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">Advanced fuzzy matching algorithms ensure accurate variety identification across datasets</p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="text-center group">
+                    <div class="relative inline-block mb-4">
+                        <div class="absolute inset-0 bg-gradient-to-br from-primary-400 to-primary-600 rounded-2xl blur opacity-25 group-hover:opacity-40 transition-opacity duration-300"></div>
+                        <div class="relative w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            <i class="fas fa-columns text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Auto Column Mapping</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">Intelligent detection and automatic mapping of Excel columns saves time and reduces errors</p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="text-center group">
+                    <div class="relative inline-block mb-4">
+                        <div class="absolute inset-0 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl blur opacity-25 group-hover:opacity-40 transition-opacity duration-300"></div>
+                        <div class="relative w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            <i class="fas fa-download text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Seamless Export</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">Download enriched data in multiple formats ready for analysis and reporting</p>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="text-center group">
+                    <div class="relative inline-block mb-4">
+                        <div class="absolute inset-0 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl blur opacity-25 group-hover:opacity-40 transition-opacity duration-300"></div>
+                        <div class="relative w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            <i class="fas fa-shield-alt text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Data Validation</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">Comprehensive quality checks ensure data integrity and consistency across all operations</p>
+                </div>
+
+                <!-- Feature 5 -->
+                <div class="text-center group">
+                    <div class="relative inline-block mb-4">
+                        <div class="absolute inset-0 bg-gradient-to-br from-pink-400 to-pink-600 rounded-2xl blur opacity-25 group-hover:opacity-40 transition-opacity duration-300"></div>
+                        <div class="relative w-20 h-20 bg-gradient-to-br from-pink-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            <i class="fas fa-history text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Version Control</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">Track changes and maintain historical records of all data modifications and updates</p>
+                </div>
+
+                <!-- Feature 6 -->
+                <div class="text-center group">
+                    <div class="relative inline-block mb-4">
+                        <div class="absolute inset-0 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-2xl blur opacity-25 group-hover:opacity-40 transition-opacity duration-300"></div>
+                        <div class="relative w-20 h-20 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            <i class="fas fa-brain text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">AI-Powered Insights</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">Machine learning algorithms provide intelligent suggestions and pattern recognition</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

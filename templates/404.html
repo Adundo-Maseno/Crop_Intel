@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found - Crop Variety System{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
+    <div class="max-w-lg w-full text-center">
+        <!-- Animated Illustration -->
+        <div class="relative mb-8">
+            <div class="w-64 h-64 mx-auto relative">
+                <!-- Main plant illustration -->
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="w-48 h-48 bg-gradient-to-br from-primary-100 to-purple-100 rounded-full flex items-center justify-center">
+                        <div class="w-32 h-32 bg-gradient-to-br from-primary-200 to-purple-200 rounded-full flex items-center justify-center">
+                            <i class="fas fa-seedling text-6xl text-primary-600 opacity-20"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Floating leaves -->
+                <div class="absolute top-4 left-8 animate-bounce-gentle">
+                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-leaf text-green-500 text-sm"></i>
+                    </div>
+                </div>
+                <div class="absolute top-12 right-6 animate-bounce-gentle" style="animation-delay: 0.5s;">
+                    <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-leaf text-green-500 text-xs"></i>
+                    </div>
+                </div>
+                <div class="absolute bottom-8 left-12 animate-bounce-gentle" style="animation-delay: 1s;">
+                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-leaf text-green-500 text-sm"></i>
+                    </div>
+                </div>
+                
+                <!-- 404 Number -->
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="text-8xl font-bold text-primary-600 opacity-30">404</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Message -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">
+                Page Not Found
+            </h1>
+            <p class="text-xl text-gray-600 mb-6 leading-relaxed">
+                Oops! It looks like this variety has wandered off from our catalog. 
+                The page you're looking for doesn't exist or has been moved.
+            </p>
+            
+            <!-- Search Suggestion -->
+            <div class="bg-blue-50 border border-blue-200 rounded-2xl p-6 mb-6">
+                <div class="flex items-start">
+                    <i class="fas fa-search text-blue-600 text-xl mr-3 mt-1"></i>
+                    <div class="text-left">
+                        <h3 class="font-semibold text-blue-800 mb-2">Looking for something specific?</h3>
+                        <p class="text-blue-700 text-sm">
+                            Try searching our crop variety database to find what you need.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            <a href="{{ url_for('index') }}" 
+               class="bg-primary-600 text-white px-6 py-4 rounded-xl hover:bg-primary-700 transition-all duration-300 transform hover:-translate-y-1 shadow-lg hover:shadow-xl font-semibold flex items-center justify-center">
+                <i class="fas fa-home mr-3"></i>
+                Back to Home
+            </a>
+            <a href="{{ url_for('search') }}" 
+               class="bg-white text-gray-700 border-2 border-gray-300 px-6 py-4 rounded-xl hover:border-primary-300 hover:bg-primary-50 transition-all duration-300 transform hover:-translate-y-1 shadow-lg hover:shadow-xl font-semibold flex items-center justify-center">
+                <i class="fas fa-search mr-3"></i>
+                Explore Varieties
+            </a>
+        </div>
+
+        <!-- Popular Links -->
+        <div class="bg-gray-50 rounded-2xl p-6">
+            <h3 class="font-semibold text-gray-800 mb-4">Popular Pages</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <a href="{{ url_for('upload_master') }}" 
+                   class="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center justify-center p-2 hover:bg-white rounded-lg transition-colors">
+                    <i class="fas fa-database mr-2"></i>Master Catalog
+                </a>
+                <a href="{{ url_for('upload_country') }}" 
+                   class="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center justify-center p-2 hover:bg-white rounded-lg transition-colors">
+                    <i class="fas fa-upload mr-2"></i>Upload Data
+                </a>
+                <a href="{{ url_for('data_quality') }}" 
+                   class="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center justify-center p-2 hover:bg-white rounded-lg transition-colors">
+                    <i class="fas fa-chart-line mr-2"></i>Analytics
+                </a>
+            </div>
+        </div>
+
+        <!-- Help Section -->
+        <div class="mt-8 text-center">
+            <p class="text-gray-500 text-sm mb-4">
+                Still can't find what you're looking for?
+            </p>
+            <div class="flex justify-center space-x-4">
+                <a href="#" class="text-primary-600 hover:text-primary-700 font-medium text-sm flex items-center">
+                    <i class="fas fa-life-ring mr-2"></i>Get Help
+                </a>
+                <a href="#" class="text-primary-600 hover:text-primary-700 font-medium text-sm flex items-center">
+                    <i class="fas fa-envelope mr-2"></i>Contact Support
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Background Elements -->
+<div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="absolute top-1/4 left-1/4 w-8 h-8 bg-primary-100 rounded-full opacity-20 animate-pulse"></div>
+    <div class="absolute top-1/3 right-1/4 w-12 h-12 bg-green-100 rounded-full opacity-20 animate-pulse" style="animation-delay: 1s;"></div>
+    <div class="absolute bottom-1/4 left-1/3 w-10 h-10 bg-purple-100 rounded-full opacity-20 animate-pulse" style="animation-delay: 2s;"></div>
+    <div class="absolute bottom-1/3 right-1/3 w-6 h-6 bg-yellow-100 rounded-full opacity-20 animate-pulse" style="animation-delay: 1.5s;"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Add some interactive elements
+document.addEventListener('DOMContentLoaded', function() {
+    // Add floating animation to the main illustration
+    const illustration = document.querySelector('.relative.mb-8');
+    if (illustration) {
+        illustration.style.animation = 'float 6s ease-in-out infinite';
+    }
+
+    // Add click animation to buttons
+    const buttons = document.querySelectorAll('a, button');
+    buttons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            // Add ripple effect
+            const ripple = document.createElement('span');
+            const rect = this.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
+            
+            ripple.style.cssText = `
+                position: absolute;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.6);
+                transform: scale(0);
+                animation: ripple 0.6s linear;
+                pointer-events: none;
+                width: ${size}px;
+                height: ${size}px;
+                left: ${x}px;
+                top: ${y}px;
+            `;
+            
+            this.style.position = 'relative';
+            this.style.overflow = 'hidden';
+            this.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        });
+    });
+});
+
+// Add CSS for ripple effect
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    @keyframes ripple {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+    
+    .animate-bounce-gentle {
+        animation: bounceGentle 3s ease-in-out infinite;
+    }
+    
+    @keyframes bounceGentle {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+`;
+document.head.appendChild(style);
+</script>
+
+<style>
+/* Custom animations for the 404 page */
+.fixed.inset-0.overflow-hidden {
+    z-index: -1;
+}
+
+/* Ensure the page takes full height */
+.min-h-screen {
+    min-height: 100vh;
+}
+
+/* Smooth transitions for all interactive elements */
+a, button {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced hover effects */
+.bg-primary-600:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -3px rgba(59, 130, 246, 0.3);
+}
+
+.bg-white:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive text sizing */
+@media (max-width: 640px) {
+    .text-4xl {
+        font-size: 2rem;
+    }
+    .text-xl {
+        font-size: 1.1rem;
+    }
+}
+</style>
+{% endblock %}

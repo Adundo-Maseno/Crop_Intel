@@ -1,0 +1,346 @@
+<!-- templates/split_results.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Button and gradient styles */
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .card-hover {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .hover-lift {
+        transition: all 0.3s;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .text-primary-600 {
+        color: #667eea;
+    }
+
+    .text-primary-900 {
+        color: #3730a3;
+    }
+
+    .text-primary-500 {
+        color: #764ba2;
+    }
+
+    .bg-primary-50 {
+        background-color: #f5f7ff;
+    }
+
+    .bg-primary-500 {
+        background-color: #667eea;
+    }
+
+    .border-primary-200 {
+        border-color: #c7d2fe;
+    }
+
+    .from-primary-50 {
+        --tw-gradient-from: #f5f7ff;
+    }
+
+    .to-blue-50 {
+        --tw-gradient-to: #eff6ff;
+    }
+
+    .max-h-96 {
+        max-height: 24rem;
+    }
+
+    /* Custom scrollbar for the groups container */
+    .max-h-96::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .max-h-96::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 10px;
+    }
+
+    .max-h-96::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+
+    .max-h-96::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    .download-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 16px 32px;
+        border-radius: 12px;
+        font-weight: bold;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 16rem;
+        box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);
+        transition: all 0.3s;
+    }
+
+    .download-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .secondary-btn {
+        background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+        color: white;
+        padding: 16px 32px;
+        border-radius: 12px;
+        font-weight: bold;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 16rem;
+        box-shadow: 0 4px 6px rgba(75, 85, 99, 0.3);
+        transition: all 0.3s;
+    }
+
+    .secondary-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(75, 85, 99, 0.4);
+    }
+
+    .next-step-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 24px;
+        text-align: center;
+        text-decoration: none;
+        display: block;
+        transition: all 0.3s;
+    }
+
+    .next-step-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .next-step-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 12px;
+        transition: transform 0.3s;
+    }
+
+    .next-step-card:hover .next-step-icon {
+        transform: scale(1.1);
+    }
+</style>
+
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="text-center mb-8">
+        <div class="flex items-center justify-center mb-4">
+            <div class="w-16 h-16 rounded-2xl flex items-center justify-center mr-4"
+                style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                <i class="fas fa-check text-white text-2xl"></i>
+            </div>
+            <div class="text-left">
+                <h1 class="text-3xl font-bold text-gray-900">Data Split Successfully!</h1>
+                <p class="text-lg text-gray-600">Your file has been organized into separate sheets</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        <!-- Summary Card -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 card-hover">
+            <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                <i class="fas fa-chart-pie text-primary-600 mr-3"></i>
+                Split Summary
+            </h2>
+            <div class="space-y-4">
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span class="text-gray-700">Total Groups Created:</span>
+                    <span class="font-bold text-primary-600 text-lg">{{ stats.total_groups }}</span>
+                </div>
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span class="text-gray-700">Total Records Processed:</span>
+                    <span class="font-bold text-primary-600 text-lg">{{ stats.total_records }}</span>
+                </div>
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span class="text-gray-700">Split By Column:</span>
+                    <span class="font-bold text-primary-600">{{ stats.split_column }}</span>
+                </div>
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span class="text-gray-700">File Prefix:</span>
+                    <span class="font-bold text-primary-600">{{ stats.file_prefix if stats.file_prefix else 'None'
+                        }}</span>
+                </div>
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span class="text-gray-700">Output Type:</span>
+                    <span class="font-bold text-primary-600">
+                        {% if stats.output_type == 'single_file' %}
+                        Single Excel File
+                        {% else %}
+                        Multiple Files (ZIP)
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Groups Created -->
+        <div class="lg:col-span-2 bg-white rounded-2xl shadow-xl p-6 card-hover">
+            <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                <i class="fas fa-layer-group text-primary-600 mr-3"></i>
+                Groups Created
+            </h2>
+            <div class="max-h-96 overflow-y-auto">
+                <!-- In the Groups Created section, replace this part: -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {% for group in groups %}
+                    <div class="rounded-xl p-4 border border-primary-200"
+                        style="background: linear-gradient(135deg, #f5f7ff 0%, #eff6ff 100%);">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-semibold text-primary-900 text-sm truncate">
+                                {% if stats.file_prefix %}
+                                {{ stats.file_prefix }}_{{ group }}
+                                {% else %}
+                                {{ group }}
+                                {% endif %}
+                            </span>
+                            <span class="bg-primary-500 text-white text-xs px-2 py-1 rounded-full">
+                                <!-- FIXED: Use actual count instead of average -->
+                                {{ group_counts[group] }} rec
+                            </span>
+                        </div>
+                        <p class="text-xs text-gray-600 truncate">Based on: {{ group }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="bg-white rounded-2xl shadow-xl p-6 card-hover">
+        <h2 class="text-xl font-bold text-gray-900 mb-6 text-center">Download Your Organized Data</h2>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <a href="{{ url_for('download_split_data') }}" class="download-btn">
+                <i class="fas fa-download mr-3"></i>
+                {% if stats.output_type == 'single_file' %}
+                Download Excel File
+                {% else %}
+                Download ZIP Archive
+                {% endif %}
+            </a>
+
+            <a href="{{ url_for('split_data') }}" class="secondary-btn">
+                <i class="fas fa-redo mr-3"></i>
+                Split Another File
+            </a>
+        </div>
+
+        <div class="mt-6 text-center">
+            <p class="text-gray-600 text-sm">
+                {% if stats.output_type == 'single_file' %}
+                Your data has been organized into {{ stats.total_groups }} separate sheets within a single Excel file.
+                {% else %}
+                Your data has been split into {{ stats.total_groups }} individual Excel files, packaged in a ZIP
+                archive.
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <!-- File Naming Preview -->
+    <div class="mt-8 rounded-2xl p-6 border"
+        style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #86efac;">
+        <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+            <i class="fas fa-info-circle text-green-600 mr-2"></i>
+            File Naming Convention
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <h4 class="font-semibold text-gray-800 mb-2">Current Naming Pattern:</h4>
+                <div class="bg-white rounded-lg p-4 border" style="border-color: #86efac;">
+                    <p class="text-sm text-gray-600 mb-2">Prefix + Group Value</p>
+                    <p class="font-mono text-green-600 font-bold">
+                        {% if stats.file_prefix %}
+                        {{ stats.file_prefix }}_[GroupValue].xlsx
+                        {% else %}
+                        [GroupValue].xlsx
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            <div>
+                <h4 class="font-semibold text-gray-800 mb-2">Examples Generated:</h4>
+                <div class="bg-white rounded-lg p-4 border" style="border-color: #86efac;">
+                    <ul class="text-sm space-y-1">
+                        {% for group in groups[:3] %}
+                        <li class="text-gray-600">
+                            <i class="fas fa-file-excel text-green-500 mr-2"></i>
+                            {% if stats.file_prefix %}
+                            {{ stats.file_prefix }}_{{ group }}.xlsx
+                            {% else %}
+                            {{ group }}.xlsx
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                        {% if groups|length > 3 %}
+                        <li class="text-gray-500 text-xs">
+                            ... and {{ groups|length - 3 }} more files
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Next Steps -->
+    <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <a href="{{ url_for('upload_master') }}" class="next-step-card">
+            <div class="next-step-icon" style="background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);">
+                <i class="fas fa-database text-white"></i>
+            </div>
+            <h3 class="font-bold text-gray-900 mb-2">Master Catalog</h3>
+            <p class="text-sm text-gray-600">Manage your reference crop variety data</p>
+        </a>
+
+        <a href="{{ url_for('search') }}" class="next-step-card">
+            <div class="next-step-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                <i class="fas fa-search text-white"></i>
+            </div>
+            <h3 class="font-bold text-gray-900 mb-2">Search Varieties</h3>
+            <p class="text-sm text-gray-600">Find specific crop varieties in your data</p>
+        </a>
+
+        <a href="{{ url_for('data_quality') }}" class="next-step-card">
+            <div class="next-step-icon" style="background: linear-gradient(135deg, #f97316 0%, #f59e0b 100%);">
+                <i class="fas fa-chart-line text-white"></i>
+            </div>
+            <h3 class="font-bold text-gray-900 mb-2">Data Analytics</h3>
+            <p class="text-sm text-gray-600">Analyze data quality and completeness</p>
+        </a>
+    </div>
+</div>
+{% endblock %}

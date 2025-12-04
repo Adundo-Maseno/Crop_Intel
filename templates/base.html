@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Crop Variety Intelligence System{% endblock %}</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- <link rel="stylesheet" href="{{url_for('static',filename='dist/output.css')}}"> -->
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        success: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        },
+                        warning: {
+                            50: '#fffbeb',
+                            100: '#fef3c7',
+                            200: '#fde68a',
+                            300: '#fcd34d',
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                            700: '#b45309',
+                            800: '#92400e',
+                            900: '#78350f',
+                        }
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.6s ease-out',
+                        'slide-in': 'slideIn 0.4s ease-out',
+                        'slide-down': 'slideDown 0.3s ease-out',
+                        'bounce-gentle': 'bounceGentle 3s infinite',
+                        'pulse-glow': 'pulseGlow 2s infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        slideIn: {
+                            '0%': { transform: 'translateX(-20px)', opacity: '0' },
+                            '100%': { transform: 'translateX(0)', opacity: '1' },
+                        },
+                        slideDown: {
+                            '0%': { transform: 'translateY(-10px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                        bounceGentle: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { boxShadow: '0 0 20px rgba(59, 130, 246, 0.4)' },
+                            '50%': { boxShadow: '0 0 40px rgba(59, 130, 246, 0.6)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
+                            '50%': { transform: 'translateY(-30px) rotate(10deg)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- DataTables -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/dataTables.tailwindcss.min.css">
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .gradient-primary {
+            background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 100%);
+        }
+
+        .gradient-success {
+            background: linear-gradient(135deg, #22c55e 0%, #10b981 100%);
+        }
+
+        .gradient-rainbow {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .shadow-glow {
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.15);
+        }
+
+        .shadow-glow-lg {
+            box-shadow: 0 0 60px rgba(59, 130, 246, 0.2);
+        }
+
+        .shadow-neon {
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.3),
+                0 0 40px rgba(139, 92, 246, 0.1);
+        }
+
+        .hover-lift {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .hover-lift:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .text-gradient-rainbow {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::before,
+        .nav-link.active::before {
+            width: 80%;
+        }
+
+        .nav-link:hover {
+            transform: translateY(-2px);
+        }
+
+        .floating-shapes {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.08;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        .shape-1 {
+            top: 10%;
+            left: 10%;
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+            animation-delay: 0s;
+        }
+
+        .shape-2 {
+            top: 50%;
+            right: 10%;
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+            animation-delay: 2s;
+        }
+
+        .shape-3 {
+            bottom: 15%;
+            left: 25%;
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #10b981, #22c55e);
+            border-radius: 50% 50% 50% 70% / 50% 50% 70% 60%;
+            animation-delay: 4s;
+        }
+
+        .shape-4 {
+            top: 70%;
+            left: 60%;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            animation-delay: 6s;
+        }
+
+        .card-hover {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-8px) scale(1.01);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+        }
+
+        .pulse-slow {
+            animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: linear-gradient(180deg, #f3f4f6 0%, #e5e7eb 100%);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            border: 2px solid #f3f4f6;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #5568d3 0%, #653a8b 100%);
+        }
+
+        ::selection {
+            background: rgba(102, 126, 234, 0.3);
+            color: #1e293b;
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            transform: scale(0);
+            animation: ripple-animation 0.6s ease-out;
+            pointer-events: none;
+        }
+
+        @keyframes ripple-animation {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        *:focus {
+            outline: none;
+        }
+
+        *:focus-visible {
+            outline: 3px solid rgba(59, 130, 246, 0.5);
+            outline-offset: 2px;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+
+<body class="h-full bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 font-sans antialiased">
+    <div class="floating-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+        <div class="shape shape-4"></div>
+    </div>
+
+    <nav
+        class="bg-white/90 backdrop-blur-xl shadow-xl border-b border-gray-200/50 sticky top-0 z-50 animate-slide-down">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <a href="{{ url_for('index') }}">
+                    <div class="flex items-center space-x-4 group cursor-pointer">
+                        <div class="relative">
+                            <div
+                                class="absolute inset-0 bg-gradient-to-br from-primary-400 to-purple-600 rounded-2xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity">
+                            </div>
+                            <div
+                                class="relative flex items-center justify-center w-14 h-14 bg-gradient-to-br from-primary-500 to-purple-600 rounded-2xl shadow-xl group-hover:scale-110 transition-transform">
+                                <i class="fas fa-seedling text-white text-2xl animate-bounce-gentle"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="text-2xl font-black text-gradient-rainbow">CropIntel</span>
+                            <span class="text-xs text-gray-500 block -mt-1 font-medium">Intelligent Variety
+                                System</span>
+                        </div>
+                    </div>
+                </a>
+
+                <div class="hidden md:flex items-center space-x-2">
+                    <a href="{{ url_for('index') }}"
+                        class="nav-link px-5 py-3 text-sm font-bold text-gray-700 hover:text-primary-600 rounded-xl {% if request.endpoint == 'index' %}active text-primary-600 bg-primary-50{% endif %}">
+                        <i class="fas fa-home mr-2"></i>Dashboard
+                    </a>
+                    <a href="{{ url_for('upload_master') }}"
+                        class="nav-link px-5 py-3 text-sm font-bold text-gray-700 hover:text-primary-600 rounded-xl {% if request.endpoint == 'upload_master' %}active text-primary-600 bg-primary-50{% endif %}">
+                        <i class="fas fa-database mr-2"></i>Master Catalog
+                    </a>
+                    <!-- ADD THIS NEW LINK -->
+                    <a href="{{ url_for('split_data') }}"
+                        class="nav-link px-5 py-3 text-sm font-bold text-gray-700 hover:text-primary-600 rounded-xl {% if request.endpoint == 'split_data' %}active text-primary-600 bg-primary-50{% endif %}">
+                        <i class="fas fa-copy mr-2"></i>Split Data
+                    </a>
+                    <!-- In desktop nav -->
+                    <a href="{{ url_for('advanced_filter') }}"
+                        class="nav-link px-5 py-3 text-sm font-bold text-gray-700 hover:text-primary-600 rounded-xl {% if request.endpoint == 'advanced_filter' %}active text-primary-600 bg-primary-50{% endif %}">
+                        <i class="fas fa-filter mr-2"></i>Advanced Filter
+                    </a>
+                    <a href="{{ url_for('compare_files') }}"
+                        class="nav-link px-5 py-3 text-sm font-bold text-gray-700 hover:text-primary-600 rounded-xl {% if request.endpoint == 'compare_files' %}active text-primary-600 bg-primary-50{% endif %}">
+                        <i class="fas fa-code-compare mr-2"></i>Compare Files
+                    </a>
+                    <a href="{{ url_for('combine_files') }}"
+                        class="nav-link px-5 py-3 text-sm font-bold text-gray-700 hover:text-primary-600 rounded-xl {% if request.endpoint == 'combine_files' %}active text-primary-600 bg-primary-50{% endif %}">
+                        <i class="fas fa-compress-arrows-alt mr-2"></i>Combine Files
+                    </a>
+                    <a href="{{ url_for('upload_country') }}"
+                        class="nav-link px-5 py-3 text-sm font-bold text-gray-700 hover:text-primary-600 rounded-xl {% if request.endpoint == 'upload_country' %}active text-primary-600 bg-primary-50{% endif %}">
+                        <i class="fas fa-upload mr-2"></i>Upload Data
+                    </a>
+                    <a href="{{ url_for('search') }}"
+                        class="nav-link px-5 py-3 text-sm font-bold text-gray-700 hover:text-primary-600 rounded-xl {% if request.endpoint == 'search' %}active text-primary-600 bg-primary-50{% endif %}">
+                        <i class="fas fa-search mr-2"></i>Search
+                    </a>
+                    <a href="{{ url_for('extract_attributes') }}"
+                        class="nav-link px-5 py-3 text-sm font-bold text-gray-700 hover:text-primary-600 rounded-xl {% if request.endpoint == 'extract_attributes' %}active text-primary-600 bg-primary-50{% endif %}">
+                        <i class="fas fa-magic mr-2"></i>Extract
+                    </a>
+                    <a href="{{ url_for('data_quality') }}"
+                        class="nav-link px-5 py-3 text-sm font-bold text-gray-700 hover:text-primary-600 rounded-xl {% if request.endpoint == 'data_quality' %}active text-primary-600 bg-primary-50{% endif %}">
+                        <i class="fas fa-chart-line mr-2"></i>Analytics
+                    </a>
+                </div>
+
+                <div class="md:hidden">
+                    <button type="button" id="mobile-menu-button"
+                        class="inline-flex items-center justify-center p-3 rounded-xl text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="mobile-menu"
+            class="md:hidden hidden bg-white/95 backdrop-blur-xl border-t border-gray-200/50 animate-slide-down">
+            <div class="px-4 pt-4 pb-6 space-y-2">
+                <a href="{{ url_for('index') }}"
+                    class="block px-5 py-3 text-base font-bold text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all {% if request.endpoint == 'index' %}bg-gradient-to-r from-primary-50 to-purple-50 text-primary-600{% endif %}">
+                    <i class="fas fa-home mr-3 w-5"></i>Dashboard
+                </a>
+                <a href="{{ url_for('upload_master') }}"
+                    class="block px-5 py-3 text-base font-bold text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all {% if request.endpoint == 'upload_master' %}bg-gradient-to-r from-primary-50 to-purple-50 text-primary-600{% endif %}">
+                    <i class="fas fa-database mr-3 w-5"></i>Master Catalog
+                </a>
+                <a href="{{ url_for('upload_country') }}"
+                    class="block px-5 py-3 text-base font-bold text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all {% if request.endpoint == 'upload_country' %}bg-gradient-to-r from-primary-50 to-purple-50 text-primary-600{% endif %}">
+                    <i class="fas fa-upload mr-3 w-5"></i>Upload Data
+                </a>
+
+                <!-- ADD THIS NEW LINK FOR MOBILE -->
+                <a href="{{ url_for('split_data') }}"
+                    class="block px-5 py-3 text-base font-bold text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all {% if request.endpoint == 'split_data' %}bg-gradient-to-r from-primary-50 to-purple-50 text-primary-600{% endif %}">
+                    <i class="fas fa-copy mr-3 w-5"></i>Split Data
+                </a>
+                <!-- In mobile nav -->
+                <a href="{{ url_for('advanced_filter') }}"
+                    class="block px-5 py-3 text-base font-bold text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all {% if request.endpoint == 'advanced_filter' %}bg-gradient-to-r from-primary-50 to-purple-50 text-primary-600{% endif %}">
+                    <i class="fas fa-filter mr-3 w-5"></i>Advanced Filter
+                </a>
+                <a href="{{ url_for('compare_files') }}"
+                    class="block px-5 py-3 text-base font-bold text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all {% if request.endpoint == 'compare_files' %}active text-primary-600 bg-primary-50{% endif %}">
+                    <i class="fas fa-code-compare mr-2"></i>Compare Files
+                </a>
+                <a href="{{ url_for('combine_files') }}"
+                    class="block px-5 py-3 text-base font-bold text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all {% if request.endpoint == 'combine_files' %}bg-gradient-to-r from-primary-50 to-purple-50 text-primary-600{% endif %}">
+                    <i class="fas fa-compress-arrows-alt mr-3 w-5"></i>Combine Files
+                </a>
+                <a href="{{ url_for('search') }}"
+                    class="block px-5 py-3 text-base font-bold text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all {% if request.endpoint == 'search' %}bg-gradient-to-r from-primary-50 to-purple-50 text-primary-600{% endif %}">
+                    <i class="fas fa-search mr-3 w-5"></i>Search
+                </a>
+                <a href="{{ url_for('extract_attributes') }}"
+                    class="block px-5 py-3 text-base font-bold text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all {% if request.endpoint == 'extract_attributes' %}bg-gradient-to-r from-primary-50 to-purple-50 text-primary-600{% endif %}">
+                    <i class="fas fa-magic mr-3 w-5"></i>Extract Attributes
+                </a>
+                <a href="{{ url_for('data_quality') }}"
+                    class="block px-5 py-3 text-base font-bold text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all {% if request.endpoint == 'data_quality' %}bg-gradient-to-r from-primary-50 to-purple-50 text-primary-600{% endif %}">
+                    <i class="fas fa-chart-line mr-3 w-5"></i>Analytics
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+        {% for category, message in messages %}
+        <div class="animate-slide-in rounded-2xl p-5 mb-4 shadow-2xl border-l-4 hover-lift
+                                {% if category == 'error' %} 
+                                    bg-gradient-to-r from-red-50 to-pink-50 border-red-500
+                                {% else %} 
+                                    bg-gradient-to-r from-success-50 to-emerald-50 border-success-500
+                                {% endif %}">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center mr-4
+                    {% if category == 'error' %}
+                        bg-gradient-to-br from-red-500 to-pink-600
+                    {% else %}
+                        bg-gradient-to-br from-success-500 to-emerald-600
+                    {% endif %}">
+                    <i
+                        class="fas {% if category == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} text-white text-lg"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="font-bold {% if category == 'error' %}text-red-900{% else %}text-success-900{% endif %}">
+                        {{ message }}</p>
+                </div>
+                <button onclick="this.parentElement.parentElement.remove()"
+                    class="ml-auto p-2 hover:bg-white/50 rounded-lg transition-all">
+                    <i
+                        class="fas fa-times {% if category == 'error' %}text-red-600{% else %}text-success-600{% endif %}"></i>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <main class="flex-1 relative z-10 min-h-screen">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer
+        class="bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 text-white mt-20 relative z-10 overflow-hidden">
+        <div class="absolute inset-0 opacity-5">
+            <div class="absolute top-0 left-0 w-96 h-96 bg-primary-500 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-0 right-0 w-96 h-96 bg-purple-500 rounded-full blur-3xl"></div>
+        </div>
+
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-12">
+                <div class="md:col-span-5">
+                    <div class="flex items-center space-x-4 mb-6">
+                        <div class="relative">
+                            <div
+                                class="absolute inset-0 bg-gradient-to-br from-primary-400 to-purple-600 rounded-2xl blur-xl opacity-50">
+                            </div>
+                            <div
+                                class="relative w-12 h-12 bg-gradient-to-br from-primary-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-2xl">
+                                <i class="fas fa-seedling text-white text-xl"></i>
+                            </div>
+                        </div>
+                        <span class="text-2xl font-black text-gradient-rainbow">CropIntel</span>
+                    </div>
+                    <p class="text-gray-400 text-base mb-6 leading-relaxed max-w-md">
+                        Advanced crop variety data matching and intelligence system for agricultural research and
+                        development. Powered by cutting-edge AI technology.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#"
+                            class="w-12 h-12 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center hover:bg-white/20 transition-all hover:scale-110 border border-white/20">
+                            <i class="fab fa-github text-xl"></i>
+                        </a>
+                        <a href="#"
+                            class="w-12 h-12 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center hover:bg-white/20 transition-all hover:scale-110 border border-white/20">
+                            <i class="fab fa-twitter text-xl"></i>
+                        </a>
+                        <a href="#"
+                            class="w-12 h-12 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center hover:bg-white/20 transition-all hover:scale-110 border border-white/20">
+                            <i class="fab fa-linkedin text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="md:col-span-3">
+                    <h3 class="text-sm font-black uppercase tracking-wider mb-6 text-white flex items-center">
+                        <div
+                            class="w-8 h-8 bg-gradient-to-br from-primary-500 to-purple-600 rounded-lg flex items-center justify-center mr-2">
+                            <i class="fas fa-link text-xs"></i>
+                        </div>
+                        Quick Links
+                    </h3>
+                    <ul class="space-y-3">
+                        <li>
+                            <a href="{{ url_for('index') }}"
+                                class="text-gray-400 hover:text-white text-base transition-colors flex items-center group">
+                                <i
+                                    class="fas fa-chevron-right text-xs mr-2 group-hover:translate-x-1 transition-transform"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('upload_master') }}"
+                                class="text-gray-400 hover:text-white text-base transition-colors flex items-center group">
+                                <i
+                                    class="fas fa-chevron-right text-xs mr-2 group-hover:translate-x-1 transition-transform"></i>
+                                Master Catalog
+                            </a>
+                        </li>
+                        <!-- ADD THIS NEW FOOTER LINK -->
+                        <li>
+                            <a href="{{ url_for('split_data') }}"
+                                class="text-gray-400 hover:text-white text-base transition-colors flex items-center group">
+                                <i
+                                    class="fas fa-chevron-right text-xs mr-2 group-hover:translate-x-1 transition-transform"></i>
+                                Split Data
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('search') }}"
+                                class="text-gray-400 hover:text-white text-base transition-colors flex items-center group">
+                                <i
+                                    class="fas fa-chevron-right text-xs mr-2 group-hover:translate-x-1 transition-transform"></i>
+                                Search Varieties
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="{{ url_for('data_quality') }}"
+                                class="text-gray-400 hover:text-white text-base transition-colors flex items-center group">
+                                <i
+                                    class="fas fa-chevron-right text-xs mr-2 group-hover:translate-x-1 transition-transform"></i>
+                                Data Analytics
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('combine_files') }}"
+                                class="text-gray-400 hover:text-white text-base transition-colors flex items-center group">
+                                <i
+                                    class="fas fa-chevron-right text-xs mr-2 group-hover:translate-x-1 transition-transform"></i>
+                                Combine Files
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="md:col-span-4">
+                    <h3 class="text-sm font-black uppercase tracking-wider mb-6 text-white flex items-center">
+                        <div
+                            class="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center mr-2">
+                            <i class="fas fa-chart-bar text-xs"></i>
+                        </div>
+                        System Stats
+                    </h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-center bg-white/5 backdrop-blur-sm rounded-xl p-3 border border-white/10">
+                            <div
+                                class="w-10 h-10 bg-gradient-to-br from-primary-500 to-blue-600 rounded-lg flex items-center justify-center mr-3">
+                                <i class="fas fa-database text-white"></i>
+                            </div>
+                            <div>
+                                <div class="text-white font-bold text-lg">{{ variety_count or 0 }}</div>
+                                <div class="text-gray-400 text-xs">Total Varieties</div>
+                            </div>
+                        </li>
+                        <li class="flex items-center bg-white/5 backdrop-blur-sm rounded-xl p-3 border border-white/10">
+                            <div
+                                class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center mr-3">
+                                <i class="fas fa-shield-alt text-white"></i>
+                            </div>
+                            <div>
+                                <div class="text-white font-bold text-lg">99.9%</div>
+                                <div class="text-gray-400 text-xs">Uptime</div>
+                            </div>
+                        </li>
+                        <li class="flex items-center bg-white/5 backdrop-blur-sm rounded-xl p-3 border border-white/10">
+                            <div
+                                class="w-10 h-10 bg-gradient-to-br from-orange-500 to-amber-600 rounded-lg flex items-center justify-center mr-3">
+                                <i class="fas fa-bolt text-white"></i>
+                            </div>
+                            <div>
+                                <div class="text-white font-bold text-lg">&lt;100ms</div>
+                                <div class="text-gray-400 text-xs">Avg Response</div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="mt-16 pt-8 border-t border-white/10">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                    <p class="text-gray-400 text-sm text-center md:text-left">
+                        &copy; 2025 <span class="font-bold text-white">CropIntel</span>. All rights reserved.
+                        Built with <i class="fas fa-heart text-red-500 mx-1 animate-pulse"></i> using Flask & modern web
+                        technologies.
+                    </p>
+                    <div class="flex space-x-8 text-sm">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors font-medium">Privacy
+                            Policy</a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors font-medium">Terms of
+                            Service</a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors font-medium">Support
+                            Center</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <div id="loading-spinner"
+        class="fixed inset-0 bg-gradient-to-br from-white/95 via-blue-50/95 to-purple-50/95 backdrop-blur-xl flex items-center justify-center z-50 hidden">
+        <div class="text-center">
+            <div class="relative w-24 h-24 mx-auto mb-6">
+                <div class="absolute inset-0 border-4 border-primary-200 rounded-full"></div>
+                <div
+                    class="absolute inset-0 border-4 border-primary-600 border-t-transparent rounded-full animate-spin">
+                </div>
+                <div class="absolute inset-2 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"
+                    style="animation-direction: reverse; animation-duration: 1s;"></div>
+                <i
+                    class="fas fa-seedling text-primary-600 text-3xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></i>
+            </div>
+            <p class="text-gray-700 font-bold text-lg mb-2">Processing Your Request</p>
+            <p class="text-gray-500 text-sm">This will just take a moment...</p>
+        </div>
+    </div>
+
+    <button id="back-to-top"
+        class="fixed bottom-8 right-8 w-14 h-14 bg-gradient-to-br from-primary-600 to-purple-600 text-white rounded-2xl shadow-2xl hover:shadow-neon transition-all duration-300 transform translate-y-32 opacity-0 hover:scale-110 z-40 group">
+        <i class="fas fa-chevron-up group-hover:-translate-y-1 transition-transform"></i>
+    </button>
+
+    <div id="progress-bar"
+        class="fixed top-0 left-0 h-1 bg-gradient-to-r from-primary-500 via-purple-500 to-pink-500 z-50 transition-all duration-300"
+        style="width: 0%"></div>
+
+    {% block scripts %}{% endblock %}
+
+    <script>
+        document.getElementById('mobile-menu-button').addEventListener('click', function () {
+            const menu = document.getElementById('mobile-menu');
+            const icon = this.querySelector('i');
+
+            menu.classList.toggle('hidden');
+
+            if (menu.classList.contains('hidden')) {
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            } else {
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-times');
+            }
+        });
+
+        const backToTopButton = document.getElementById('back-to-top');
+
+        window.addEventListener('scroll', function () {
+            if (window.pageYOffset > 300) {
+                backToTopButton.classList.remove('translate-y-32', 'opacity-0');
+                backToTopButton.classList.add('translate-y-0', 'opacity-100');
+            } else {
+                backToTopButton.classList.remove('translate-y-0', 'opacity-100');
+                backToTopButton.classList.add('translate-y-32', 'opacity-0');
+            }
+        });
+
+        backToTopButton.addEventListener('click', function () {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        const progressBar = document.getElementById('progress-bar');
+        window.addEventListener('scroll', function () {
+            const windowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (window.pageYOffset / windowHeight) * 100;
+            progressBar.style.width = scrolled + '%';
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', function () {
+                    document.getElementById('loading-spinner').classList.remove('hidden');
+                });
+            });
+
+            window.addEventListener('load', function () {
+                document.getElementById('loading-spinner').classList.add('hidden');
+            });
+        });
+
+        document.addEventListener('click', function (e) {
+            if (e.target.closest('[onclick*="remove"]')) {
+                const message = e.target.closest('.animate-slide-in');
+                message.style.opacity = '0';
+                message.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    message.remove();
+                }, 300);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('nav a');
+
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active', 'text-primary-600');
+                }
+            });
+        });
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        window.addEventListener('scroll', function () {
+            const scrolled = window.pageYOffset;
+            const shapes = document.querySelectorAll('.shape');
+
+            shapes.forEach((shape, index) => {
+                const speed = 0.3 + (index * 0.15);
+                const yPos = -(scrolled * speed);
+                shape.style.transform = `translateY(${yPos}px) rotate(${scrolled * 0.05}deg)`;
+            });
+        });
+
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function (entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in');
+                }
+            });
+        }, observerOptions);
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.card-hover, .hover-lift').forEach(el => {
+                observer.observe(el);
+            });
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.altKey && e.key === 'h') {
+                e.preventDefault();
+                window.location.href = "{{ url_for('index') }}";
+            }
+            if (e.altKey && e.key === 's') {
+                e.preventDefault();
+                window.location.href = "{{ url_for('search') }}";
+            }
+            if (e.key === 'Escape') {
+                const menu = document.getElementById('mobile-menu');
+                if (!menu.classList.contains('hidden')) {
+                    menu.classList.add('hidden');
+                    document.querySelector('#mobile-menu-button i').classList.remove('fa-times');
+                    document.querySelector('#mobile-menu-button i').classList.add('fa-bars');
+                }
+            }
+        });
+
+        document.querySelectorAll('button, a').forEach(button => {
+            button.addEventListener('click', function (e) {
+                const ripple = document.createElement('span');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                ripple.classList.add('ripple');
+
+                this.appendChild(ripple);
+
+                setTimeout(() => ripple.remove(), 600);
+            });
+        });
+
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            document.querySelectorAll('*').forEach(el => {
+                el.style.animation = 'none';
+                el.style.transition = 'none';
+            });
+        }
+    </script>
+</body>
+
+</html>

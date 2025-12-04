@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <div class="bg-white rounded-2xl shadow-xl p-8 card-hover">
+        <h1 class="text-3xl font-bold mb-6 text-gray-900">
+            <i class="fas fa-columns mr-3 text-primary-600"></i>Map Columns
+        </h1>
+
+        <!-- Smart Mapping Info -->
+        <div class="bg-gradient-to-r from-primary-50 to-purple-50 border border-primary-200 rounded-2xl p-6 mb-8">
+            <div class="flex items-start">
+                <i class="fas fa-robot text-primary-600 text-2xl mr-4 mt-1"></i>
+                <div>
+                    <h3 class="font-bold text-primary-800 text-lg mb-2">Smart Column Detection Active</h3>
+                    <p class="text-primary-700">
+                        The system has intelligently mapped your columns using pattern recognition. 
+                        <strong>Review the suggestions below</strong> - most mappings should be correct!
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('map_columns') }}">
+            <!-- Column Mapping Section -->
+            <div class="mb-8">
+                <h3 class="text-xl font-bold mb-6 text-gray-900 flex items-center">
+                    <i class="fas fa-exchange-alt text-primary-600 mr-3"></i>Column Mapping
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for column in columns %}
+                    <div class="flex items-center justify-between p-4 border-2 border-gray-200 rounded-xl hover:border-primary-300 transition-all duration-300 
+                                {% if column in auto_mappings %}bg-green-50 border-green-200{% endif %}">
+                        <div class="flex-1">
+                            <span class="font-semibold text-gray-900">{{ column }}</span>
+                            {% if column in auto_mappings %}
+                            <div class="flex items-center mt-1">
+                                <span class="text-xs font-semibold px-2 py-1 rounded-full 
+                                            {% if auto_mappings[column] in ['variety_release_name', 'crop', 'country', 'year_of_release'] %}
+                                            bg-green-100 text-green-800
+                                            {% else %}
+                                            bg-blue-100 text-blue-800
+                                            {% endif %}">
+                                    <i class="fas fa-{% if auto_mappings[column] in ['variety_release_name', 'crop', 'country', 'year_of_release'] %}check-circle{% else %}lightbulb{% endif %} mr-1"></i>
+                                    {% if auto_mappings[column] in ['variety_release_name', 'crop', 'country', 'year_of_release'] %}
+                                    Essential Match
+                                    {% else %}
+                                    Smart Match
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">
+                                → <strong>{{ auto_mappings[column] }}</strong>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <select name="map_{{ column }}" 
+                                class="ml-4 border-2 border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-200 focus:border-primary-500 min-w-[180px] 
+                                       {% if column in auto_mappings %}border-green-300 bg-green-25{% endif %}">
+                            <option value="">-- Not Mapped --</option>
+                            {% for master_col in master_columns %}
+                            <option value="{{ master_col }}" 
+                                    {% if column in auto_mappings and auto_mappings[column] == master_col %}selected{% endif %}
+                                    class="{% if master_col in ['variety_release_name', 'crop', 'country', 'year_of_release'] %}font-semibold text-green-700{% endif %}">
+                                {{ master_col }}
+                                {% if master_col in ['variety_release_name', 'crop', 'country', 'year_of_release'] %} ★{% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Fields to Fill Section -->
+            <div class="mb-8">
+                <h3 class="text-xl font-bold mb-6 text-gray-900 flex items-center">
+                    <i class="fas fa-database text-purple-600 mr-3"></i>Select Fields to Fill from Master Catalog
+                </h3>
+                
+                <!-- Quick Select Buttons -->
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <button type="button" onclick="selectAllFields()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm font-semibold">
+                        Select All
+                    </button>
+                    <button type="button" onclick="selectEssentialFields()" class="px-4 py-2 bg-green-200 text-green-800 rounded-lg hover:bg-green-300 transition-colors text-sm font-semibold">
+                        Essential Fields Only
+                    </button>
+                    <button type="button" onclick="deselectAllFields()" class="px-4 py-2 bg-red-200 text-red-800 rounded-lg hover:bg-red-300 transition-colors text-sm font-semibold">
+                        Clear All
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {% for master_col in master_columns %}
+                    <label class="flex items-center space-x-3 p-3 border-2 border-gray-200 rounded-xl hover:border-primary-300 hover:bg-primary-50 transition-all duration-300 cursor-pointer
+                                {% if master_col in ['variety_release_name', 'crop', 'country', 'year_of_release', 'botanical_name', 'seed_type', 'releasing_entity'] %}bg-blue-50 border-blue-200{% endif %}">
+                        <input type="checkbox" name="fill_{{ master_col }}" 
+                               class="rounded text-primary-600 focus:ring-primary-500 transform scale-125
+                                      {% if master_col in ['variety_release_name', 'crop', 'country', 'year_of_release'] %}border-green-400{% endif %}">
+                        <div class="flex-1">
+                            <span class="text-sm font-medium text-gray-900 {% if master_col in ['variety_release_name', 'crop', 'country', 'year_of_release'] %}text-green-700 font-semibold{% endif %}">
+                                {{ master_col }}
+                                {% if master_col in ['variety_release_name', 'crop', 'country', 'year_of_release'] %}
+                                <span class="text-green-500 ml-1">★</span>
+                                {% endif %}
+                            </span>
+                            {% if master_col in ['variety_release_name', 'crop', 'country', 'year_of_release'] %}
+                            <div class="text-xs text-green-600 mt-1">Essential Field</div>
+                            {% endif %}
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+                <a href="{{ url_for('upload_country') }}" 
+                   class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-semibold flex items-center">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Upload
+                </a>
+                <button type="submit" 
+                        class="px-8 py-3 bg-gradient-to-r from-primary-600 to-purple-600 text-white rounded-xl hover:from-primary-700 hover:to-purple-700 transition-all duration-300 shadow-lg font-semibold text-lg flex items-center">
+                    <i class="fas fa-play mr-2"></i>Start Matching
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Help Section -->
+    <div class="bg-white rounded-2xl shadow-xl p-8 mt-8 card-hover">
+        <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+            <i class="fas fa-question-circle text-primary-600 mr-2"></i>Mapping Tips
+        </h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="font-semibold text-gray-800 mb-3 text-green-700">✅ Essential Fields</h4>
+                <ul class="text-sm text-gray-600 space-y-2">
+                    <li class="flex items-center">
+                        <i class="fas fa-star text-green-500 mr-2 text-xs"></i>
+                        <strong>variety_release_name</strong> - Most important for matching
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-star text-green-500 mr-2 text-xs"></i>
+                        <strong>crop</strong> - Crop type (maize, rice, wheat, etc.)
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-star text-green-500 mr-2 text-xs"></i>
+                        <strong>country</strong> - Country of release
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-star text-green-500 mr-2 text-xs"></i>
+                        <strong>year_of_release</strong> - Release year
+                    </li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-semibold text-gray-800 mb-3 text-blue-700">💡 Recommended Fields</h4>
+                <ul class="text-sm text-gray-600 space-y-2">
+                    <li class="flex items-center">
+                        <i class="fas fa-lightbulb text-blue-500 mr-2 text-xs"></i>
+                        <strong>botanical_name</strong> - Scientific name
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-lightbulb text-blue-500 mr-2 text-xs"></i>
+                        <strong>seed_type</strong> - Seed classification
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-lightbulb text-blue-500 mr-2 text-xs"></i>
+                        <strong>releasing_entity</strong> - Releasing organization
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function selectAllFields() {
+    document.querySelectorAll('input[type="checkbox"][name^="fill_"]').forEach(checkbox => {
+        checkbox.checked = true;
+    });
+}
+
+function deselectAllFields() {
+    document.querySelectorAll('input[type="checkbox"][name^="fill_"]').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+}
+
+function selectEssentialFields() {
+    deselectAllFields();
+    const essentialFields = ['variety_release_name', 'crop', 'country', 'year_of_release', 'botanical_name', 'seed_type', 'releasing_entity'];
+    essentialFields.forEach(field => {
+        const checkbox = document.querySelector(`input[name="fill_${field}"]`);
+        if (checkbox) checkbox.checked = true;
+    });
+}
+
+// Auto-select essential fields by default
+document.addEventListener('DOMContentLoaded', function() {
+    selectEssentialFields();
+    
+    // Add visual feedback for selected fields
+    const checkboxes = document.querySelectorAll('input[type="checkbox"][name^="fill_"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const label = this.closest('label');
+            if (this.checked) {
+                label.classList.add('bg-primary-50', 'border-primary-300');
+            } else {
+                label.classList.remove('bg-primary-50', 'border-primary-300');
+            }
+        });
+        
+        // Trigger initial state
+        const event = new Event('change');
+        checkbox.dispatchEvent(event);
+    });
+});
+</script>
+
+<style>
+.card-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+}
+
+.bg-green-25 {
+    background-color: rgba(16, 185, 129, 0.05);
+}
+</style>
+{% endblock %}

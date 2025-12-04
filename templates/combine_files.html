@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="text-center mb-12 animate-fade-in">
+        <h1 class="text-4xl font-black text-gradient-rainbow mb-4">
+            <i class="fas fa-file-export mr-4"></i>Combine Excel Files
+        </h1>
+        <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+            Combine multiple Excel files into a single sheet. Headers are automatically mapped and standardized across
+            all files.
+        </p>
+    </div>
+
+    <!-- Upload Card -->
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-2xl shadow-2xl border border-gray-200/50 hover-lift">
+            <div class="p-8">
+                <div class="flex items-center mb-6">
+                    <div
+                        class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-file-excel text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-black text-gray-800">Upload Files to Combine</h2>
+                        <p class="text-gray-600">Select up to 25 Excel files to combine into one sheet</p>
+                    </div>
+                </div>
+
+                <form method="POST" enctype="multipart/form-data" class="space-y-6">
+                    <!-- File Upload -->
+                    <div
+                        class="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center transition-all hover:border-primary-400 hover:bg-primary-50/20">
+                        <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                        <h3 class="text-lg font-bold text-gray-700 mb-2">Select Excel Files</h3>
+                        <p class="text-gray-500 mb-4">Choose multiple .xlsx or .xls files (max 25 files)</p>
+
+                        <input type="file" name="files" id="files" multiple accept=".xlsx,.xls" class="hidden"
+                            onchange="updateFileList()">
+
+                        <label for="files"
+                            class="inline-flex items-center px-6 py-3 bg-gradient-to-br from-primary-500 to-purple-600 text-white font-bold rounded-xl cursor-pointer hover:shadow-lg transition-all">
+                            <i class="fas fa-folder-open mr-2"></i>Choose Files
+                        </label>
+
+                        <!-- File List Display -->
+                        <div id="fileList" class="mt-4 text-left space-y-2 max-h-40 overflow-y-auto hidden">
+                            <p class="text-sm font-bold text-gray-700">Selected Files:</p>
+                            <div id="fileItems" class="space-y-1"></div>
+                        </div>
+                    </div>
+
+                    <!-- Data Cleaning Options -->
+                    <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+                        <div class="flex items-center mb-4">
+                            <div
+                                class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mr-4">
+                                <i class="fas fa-broom text-white"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-black text-gray-800">Data Cleaning Options</h3>
+                                <p class="text-gray-600">Remove duplicates and improve data quality</p>
+                            </div>
+                        </div>
+
+                        <!-- Enable Data Cleaning Checkbox -->
+                        <div class="flex items-center mb-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                            <input type="checkbox" name="enable_data_cleaning" id="enable_data_cleaning"
+                                class="w-5 h-5 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 focus:ring-2">
+                            <label for="enable_data_cleaning"
+                                class="ml-3 text-lg font-bold text-gray-800 cursor-pointer">
+                                Enable Data Cleaning & Duplicate Removal
+                            </label>
+                        </div>
+
+                        <!-- Data Cleaning Details (shown when checkbox is checked) -->
+                        <div id="dataCleaningDetails"
+                            class="hidden space-y-4 bg-purple-50 border border-purple-200 rounded-xl p-4">
+                            <!-- In the data cleaning details section -->
+                            <div class="flex items-start">
+                                <i class="fas fa-info-circle text-purple-600 mt-1 mr-3"></i>
+                                <div>
+                                    <h4 class="font-bold text-purple-800 mb-2">How Data Cleaning Works</h4>
+                                    <ul class="text-purple-700 text-sm space-y-1">
+                                        <li>• <strong>Duplicate Detection:</strong> Groups records by crop and variety
+                                            name</li>
+                                        <li>• <strong>Completeness Scoring:</strong> Calculates percentage of filled
+                                            fields for each record</li>
+                                        <li>• <strong>Smart Selection:</strong> Keeps the record with highest
+                                            completeness percentage</li>
+                                        <li>• <strong>Tie Breaking:</strong> If equal completeness, selects one record
+                                            arbitrarily</li>
+                                        <li>• <strong>Alphabetical Sorting:</strong> Final data sorted by crop then
+                                            variety name (A-Z)</li>
+                                        <li>• <strong>Fields Considered:</strong> All fields except source file
+                                            information</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Group Columns Input -->
+                            <div class="mt-4">
+                                <label for="group_columns" class="block text-sm font-bold text-gray-700 mb-2">
+                                    Grouping Columns (comma-separated):
+                                </label>
+                                <input type="text" name="group_columns" id="group_columns"
+                                    value="crop,variety_release_name"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                                    placeholder="crop,variety_release_name">
+                                <p class="text-xs text-gray-500 mt-1">Columns used to identify duplicates. Default: crop
+                                    and variety_release_name</p>
+                            </div>
+
+                            <!-- Benefits -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                <div class="bg-white rounded-lg p-3 border border-purple-200">
+                                    <div class="flex items-center mb-2">
+                                        <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                        <span class="font-bold text-gray-800 text-sm">Data Quality</span>
+                                    </div>
+                                    <p class="text-gray-600 text-xs">Higher completeness records are prioritized</p>
+                                </div>
+                                <div class="bg-white rounded-lg p-3 border border-purple-200">
+                                    <div class="flex items-center mb-2">
+                                        <i class="fas fa-database text-blue-500 mr-2"></i>
+                                        <span class="font-bold text-gray-800 text-sm">Duplicate Free</span>
+                                    </div>
+                                    <p class="text-gray-600 text-xs">No redundant records in final output</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Info Box -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                        <div class="flex items-start">
+                            <i class="fas fa-info-circle text-blue-500 mt-1 mr-3"></i>
+                            <div>
+                                <h4 class="font-bold text-blue-800 mb-1">How It Works</h4>
+                                <ul class="text-blue-700 text-sm space-y-1">
+                                    <li>• Files are automatically mapped using intelligent column detection</li>
+                                    <li>• <strong>Only records with both crop name and variety release name are
+                                            included</strong></li>
+                                    <li>• Headers are standardized across all files using the same mapping as other
+                                        features</li>
+                                    <li>• Only the first file's header is kept - subsequent headers are treated as data
+                                    </li>
+                                    <li>• Source file information is added to each record for tracking</li>
+                                    <li>• Records missing crop or variety names are automatically skipped</li>
+                                    <li>• <strong>Data cleaning option</strong> removes duplicates based on completeness
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit"
+                        class="w-full py-4 bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-[1.02]">
+                        <i class="fas fa-compress-arrows-alt mr-2"></i>Combine Files
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="grid md:grid-cols-3 gap-6 mt-8">
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 text-center">
+                <div
+                    class="w-12 h-12 bg-gradient-to-br from-primary-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-columns text-white"></i>
+                </div>
+                <h3 class="font-bold text-gray-800 mb-2">Smart Column Mapping</h3>
+                <p class="text-gray-600 text-sm">Uses the same intelligent mapping as other system features</p>
+            </div>
+
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 text-center">
+                <div
+                    class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-layer-group text-white"></i>
+                </div>
+                <h3 class="font-bold text-gray-800 mb-2">Header Management</h3>
+                <p class="text-gray-600 text-sm">Keeps first header, treats others as data rows</p>
+            </div>
+
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 text-center">
+                <div
+                    class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-broom text-white"></i>
+                </div>
+                <h3 class="font-bold text-gray-800 mb-2">Data Cleaning</h3>
+                <p class="text-gray-600 text-sm">Optional duplicate removal with completeness scoring</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Your existing script
+    function updateFileList() {
+        const fileInput = document.getElementById('files');
+        const fileList = document.getElementById('fileList');
+        const fileItems = document.getElementById('fileItems');
+
+        if (fileInput.files.length > 0) {
+            fileItems.innerHTML = '';
+
+            Array.from(fileInput.files).forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2';
+                fileItem.innerHTML = `
+                    <div class="flex items-center">
+                        <i class="fas fa-file-excel text-green-600 mr-2"></i>
+                        <span class="text-sm font-medium text-gray-700">${file.name}</span>
+                    </div>
+                    <span class="text-xs text-gray-500">${(file.size / 1024).toFixed(1)} KB</span>
+                `;
+                fileItems.appendChild(fileItem);
+            });
+
+            fileList.classList.remove('hidden');
+
+            // Show file count
+            const countDisplay = document.createElement('div');
+            countDisplay.className = 'text-sm font-bold text-primary-600 mt-2';
+            countDisplay.textContent = `Total: ${fileInput.files.length} file(s) selected`;
+            fileItems.appendChild(countDisplay);
+
+        } else {
+            fileList.classList.add('hidden');
+        }
+    }
+
+    // Add drag and drop functionality
+    const uploadArea = document.querySelector('form');
+    const fileInput = document.getElementById('files');
+
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('border-primary-400', 'bg-primary-50/30');
+    });
+
+    uploadArea.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('border-primary-400', 'bg-primary-50/30');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('border-primary-400', 'bg-primary-50/30');
+
+        const files = e.dataTransfer.files;
+        fileInput.files = files;
+        updateFileList();
+    });
+
+    // NEW: Data cleaning checkbox toggle
+    document.getElementById('enable_data_cleaning').addEventListener('change', function () {
+        const detailsSection = document.getElementById('dataCleaningDetails');
+        if (this.checked) {
+            detailsSection.classList.remove('hidden');
+        } else {
+            detailsSection.classList.add('hidden');
+        }
+    });
+</script>
+{% endblock %}

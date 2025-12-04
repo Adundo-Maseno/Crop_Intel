@@ -1,0 +1,445 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Page Header -->
+    <div class="mb-8 animate-fade-in">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-900 mb-2">
+                    <i class="fas fa-chart-line mr-3 text-gradient bg-gradient-to-r from-primary-600 to-purple-600"></i>
+                    Data Quality Analytics
+                </h1>
+                <p class="text-gray-600">Monitor data completeness, accuracy, and system performance</p>
+            </div>
+            <button onclick="window.location.reload()" 
+                    class="hidden md:flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm">
+                <i class="fas fa-sync-alt mr-2"></i>
+                Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Overview Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Total Varieties Card -->
+        <div class="bg-white rounded-xl shadow-lg hover-lift p-6 animate-fade-in border border-gray-100">
+            <div class="flex items-center justify-between">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-500 uppercase tracking-wide mb-1">Total Varieties</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ total_varieties }}</p>
+                    <p class="text-xs text-green-600 mt-2 flex items-center">
+                        <i class="fas fa-arrow-up mr-1"></i>
+                        Active records
+                    </p>
+                </div>
+                <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-database text-white text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Completeness Card -->
+        <div class="bg-white rounded-xl shadow-lg hover-lift p-6 animate-fade-in border border-gray-100" style="animation-delay: 0.1s">
+            <div class="flex items-center justify-between">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-500 uppercase tracking-wide mb-1">Completeness</p>
+                    <p class="text-3xl font-bold text-gray-900">
+                        {% if avg_completeness %}
+                            {{ avg_completeness }}%
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </p>
+                    <p class="text-xs text-green-600 mt-2 flex items-center">
+                        <i class="fas fa-check mr-1"></i>
+                        Overall quality
+                    </p>
+                </div>
+                <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-check-circle text-white text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Uploads Card -->
+        <div class="bg-white rounded-xl shadow-lg hover-lift p-6 animate-fade-in border border-gray-100" style="animation-delay: 0.2s">
+            <div class="flex items-center justify-between">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-500 uppercase tracking-wide mb-1">Recent Uploads</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ recent_uploads|length }}</p>
+                    <p class="text-xs text-blue-600 mt-2 flex items-center">
+                        <i class="fas fa-clock mr-1"></i>
+                        Last 7 days
+                    </p>
+                </div>
+                <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-upload text-white text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Average Accuracy Card -->
+        <div class="bg-white rounded-xl shadow-lg hover-lift p-6 animate-fade-in border border-gray-100" style="animation-delay: 0.3s">
+            <div class="flex items-center justify-between">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-500 uppercase tracking-wide mb-1">Avg Accuracy</p>
+                    <p class="text-3xl font-bold text-gray-900">
+                        {% set accuracies = recent_uploads|selectattr('matching_accuracy')|map(attribute='matching_accuracy')|list %}
+                        {% if accuracies %}
+                            {{ "%.1f"|format(accuracies|sum / accuracies|length) }}%
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </p>
+                    <p class="text-xs text-green-600 mt-2 flex items-center">
+                        <i class="fas fa-bullseye mr-1"></i>
+                        Matching score
+                    </p>
+                </div>
+                <div class="w-14 h-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-star text-white text-2xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Field Completeness Chart -->
+    <div class="bg-white rounded-xl shadow-lg p-8 mb-8 animate-fade-in border border-gray-100" style="animation-delay: 0.4s">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h3 class="text-2xl font-bold text-gray-900">Field Completeness Analysis</h3>
+                <p class="text-gray-500 text-sm mt-1">Data quality metrics across all fields</p>
+            </div>
+            <div class="flex items-center space-x-2 text-sm">
+                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full font-medium">
+                    <i class="fas fa-circle text-xs mr-1"></i>Excellent
+                </span>
+                <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full font-medium">
+                    <i class="fas fa-circle text-xs mr-1"></i>Good
+                </span>
+                <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full font-medium">
+                    <i class="fas fa-circle text-xs mr-1"></i>Needs Improvement
+                </span>
+            </div>
+        </div>
+        
+        <div class="space-y-6">
+            {% for field, data in completeness.items() %}
+            {% set score = data.percentage %}
+            <div class="group">
+                <div class="flex justify-between items-center mb-2">
+                    <div class="flex items-center">
+                        <i class="fas fa-{{ 'check-circle' if score >= 90 else 'exclamation-circle' if score >= 70 else 'times-circle' }} 
+                           {% if score >= 90 %}text-green-500
+                           {% elif score >= 70 %}text-yellow-500
+                           {% else %}text-red-500{% endif %} mr-2"></i>
+                        <span class="text-sm font-semibold text-gray-700 capitalize">
+                            {{ field.replace('_', ' ') }}
+                        </span>
+                        <span class="ml-2 text-xs text-gray-500">({{ data.count }} records)</span>
+                    </div>
+                    <span class="text-sm font-bold 
+                        {% if score >= 90 %}text-green-600
+                        {% elif score >= 70 %}text-yellow-600
+                        {% else %}text-red-600{% endif %}">
+                        {{ score }}%
+                    </span>
+                </div>
+                <div class="relative w-full h-3 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                    <div class="absolute inset-0 h-full rounded-full transition-all duration-1000 ease-out
+                        {% if score >= 90 %}bg-gradient-to-r from-green-400 to-green-600
+                        {% elif score >= 70 %}bg-gradient-to-r from-yellow-400 to-yellow-600
+                        {% else %}bg-gradient-to-r from-red-400 to-red-600{% endif %}"
+                         style="width: {{ score }}%">
+                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-pulse"></div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Recent Processing Activity -->
+    <div class="bg-white rounded-xl shadow-lg p-8 animate-fade-in border border-gray-100" style="animation-delay: 0.5s">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h3 class="text-2xl font-bold text-gray-900">Recent Processing Activity</h3>
+                <p class="text-gray-500 text-sm mt-1">Latest data uploads and matching results</p>
+            </div>
+            <a href="{{ url_for('upload_country') }}" 
+               class="hidden md:flex items-center px-4 py-2 bg-gradient-to-r from-primary-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all hover:scale-105">
+                <i class="fas fa-plus mr-2"></i>
+                Upload Data
+            </a>
+        </div>
+
+        {% if recent_uploads %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead>
+                    <tr class="bg-gray-50">
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider rounded-tl-lg">
+                            <i class="fas fa-file mr-2"></i>File Name
+                        </th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                            <i class="fas fa-list-ol mr-2"></i>Records
+                        </th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                            <i class="fas fa-chart-bar mr-2"></i>Accuracy
+                        </th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider rounded-tr-lg">
+                            <i class="fas fa-calendar mr-2"></i>Upload Date
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-100">
+                    {% for upload in recent_uploads %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center mr-3">
+                                    <i class="fas fa-file-csv text-blue-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-900">{{ upload.filename }}</p>
+                                    <p class="text-xs text-gray-500">CSV File</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <span class="text-sm font-medium text-gray-900">{{ upload.record_count }}</span>
+                                <span class="ml-2 text-xs text-gray-500">entries</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if upload.matching_accuracy %}
+                            <div class="flex items-center">
+                                <div class="flex-1">
+                                    <div class="flex items-center">
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold
+                                            {% if upload.matching_accuracy >= 90 %}bg-green-100 text-green-800
+                                            {% elif upload.matching_accuracy >= 75 %}bg-yellow-100 text-yellow-800
+                                            {% else %}bg-red-100 text-red-800{% endif %}">
+                                            <i class="fas fa-{% if upload.matching_accuracy >= 90 %}check{% elif upload.matching_accuracy >= 75 %}exclamation{% else %}times{% endif %} mr-1"></i>
+                                            {{ "%.1f"|format(upload.matching_accuracy) }}%
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <span class="text-sm text-gray-400 italic">No data</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-clock mr-2 text-gray-400"></i>
+                                <div>
+                                    <p class="font-medium">{{ upload.uploaded_at.strftime('%b %d, %Y') }}</p>
+                                    <p class="text-xs text-gray-500">{{ upload.uploaded_at.strftime('%H:%M') }}</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-inbox text-gray-400 text-3xl"></i>
+            </div>
+            <h4 class="text-lg font-semibold text-gray-900 mb-2">No Recent Activity</h4>
+            <p class="text-gray-500 mb-6">Upload your first dataset to see analytics here</p>
+            <a href="{{ url_for('upload_country') }}" 
+               class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all hover:scale-105">
+                <i class="fas fa-upload mr-2"></i>
+                Upload Data Now
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Quick Stats Footer -->
+    <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in" style="animation-delay: 0.6s">
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-blue-100 text-sm font-medium mb-1">System Status</p>
+                    <p class="text-2xl font-bold">Operational</p>
+                </div>
+                <i class="fas fa-check-circle text-4xl opacity-50"></i>
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-green-100 text-sm font-medium mb-1">Data Health</p>
+                    <p class="text-2xl font-bold">
+                        {% if avg_completeness >= 70 %}Excellent
+                        {% elif avg_completeness >= 50 %}Good
+                        {% elif avg_completeness >= 30 %}Fair
+                        {% else %}Needs Work{% endif %}
+                    </p>
+                </div>
+                <i class="fas fa-heart text-4xl opacity-50"></i>
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-purple-100 text-sm font-medium mb-1">Total Records</p>
+                    <p class="text-2xl font-bold">{{ variety_count|default(0) }}</p>
+                </div>
+                <i class="fas fa-database text-4xl opacity-50"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quality Insights Section -->
+    {% if quality_insights %}
+    <div class="mt-8 animate-fade-in" style="animation-delay: 0.7s">
+        <h3 class="text-2xl font-bold text-gray-900 mb-4">Quality Insights</h3>
+        <div class="space-y-3">
+            {% for insight in quality_insights %}
+            <div class="flex items-start p-4 rounded-lg border 
+                {% if insight.level == 'critical' %}bg-red-50 border-red-200
+                {% elif insight.level == 'warning' %}bg-yellow-50 border-yellow-200
+                {% elif insight.level == 'success' %}bg-green-50 border-green-200
+                {% else %}bg-blue-50 border-blue-200{% endif %}">
+                <i class="fas fa-{% if insight.level == 'critical' %}exclamation-triangle{% elif insight.level == 'warning' %}exclamation-circle{% elif insight.level == 'success' %}check-circle{% else %}info-circle{% endif %} 
+                   {% if insight.level == 'critical' %}text-red-500
+                   {% elif insight.level == 'warning' %}text-yellow-500
+                   {% elif insight.level == 'success' %}text-green-500
+                   {% else %}text-blue-500{% endif %} mt-1 mr-3"></i>
+                <p class="text-sm {% if insight.level == 'critical' %}text-red-700
+                   {% elif insight.level == 'warning' %}text-yellow-700
+                   {% elif insight.level == 'success' %}text-green-700
+                   {% else %}text-blue-700{% endif %}">{{ insight.message }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Distribution Charts Section -->
+    {% if crop_distribution or country_distribution or year_distribution %}
+    <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Crop Distribution -->
+        {% if crop_distribution %}
+        <div class="bg-white rounded-xl shadow-lg p-6 animate-fade-in border border-gray-100" style="animation-delay: 0.8s">
+            <h4 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                <i class="fas fa-seedling text-green-600 mr-2"></i>
+                Top Crops
+            </h4>
+            <div class="space-y-3">
+                {% for crop, count in crop_distribution.items() %}
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-sm font-medium text-gray-700">{{ crop }}</span>
+                        <span class="text-sm font-bold text-gray-900">{{ count }}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full" 
+                             style="width: {{ (count / crop_distribution.values()|list|max * 100)|round(1) }}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Country Distribution -->
+        {% if country_distribution %}
+        <div class="bg-white rounded-xl shadow-lg p-6 animate-fade-in border border-gray-100" style="animation-delay: 0.9s">
+            <h4 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                <i class="fas fa-globe text-blue-600 mr-2"></i>
+                Top Countries
+            </h4>
+            <div class="space-y-3">
+                {% for country, count in country_distribution.items() %}
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-sm font-medium text-gray-700">{{ country }}</span>
+                        <span class="text-sm font-bold text-gray-900">{{ count }}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-gradient-to-r from-blue-400 to-blue-600 h-2 rounded-full" 
+                             style="width: {{ (count / country_distribution.values()|list|max * 100)|round(1) }}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Year Distribution -->
+        {% if year_distribution %}
+        <div class="bg-white rounded-xl shadow-lg p-6 animate-fade-in border border-gray-100" style="animation-delay: 1.0s">
+            <h4 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                <i class="fas fa-calendar text-purple-600 mr-2"></i>
+                Release Years
+            </h4>
+            <div class="space-y-3">
+                {% for year, count in year_distribution.items() %}
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-sm font-medium text-gray-700">{{ year }}</span>
+                        <span class="text-sm font-bold text-gray-900">{{ count }}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-gradient-to-r from-purple-400 to-purple-600 h-2 rounded-full" 
+                             style="width: {{ (count / year_distribution.values()|list|max * 100)|round(1) }}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Low Completeness Fields Alert -->
+    {% if low_completeness_fields %}
+    <div class="mt-8 bg-yellow-50 border border-yellow-200 rounded-xl p-6 animate-fade-in" style="animation-delay: 1.1s">
+        <div class="flex items-start">
+            <i class="fas fa-exclamation-triangle text-yellow-500 text-2xl mr-4 mt-1"></i>
+            <div class="flex-1">
+                <h4 class="text-lg font-bold text-yellow-900 mb-2">Fields Needing Attention</h4>
+                <p class="text-sm text-yellow-700 mb-3">These fields have low data completeness and should be prioritized for data enrichment:</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {% for field_data in low_completeness_fields %}
+                    <div class="flex items-center justify-between bg-white rounded-lg p-3 border border-yellow-100">
+                        <span class="text-sm font-medium text-gray-700 capitalize">{{ field_data.field.replace('_', ' ') }}</span>
+                        <span class="text-sm font-bold text-yellow-600">{{ field_data.percentage }}%</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fade-in {
+        animation: fadeIn 0.6s ease-out forwards;
+        opacity: 0;
+    }
+</style>
+{% endblock %}

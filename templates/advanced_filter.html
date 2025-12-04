@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Advanced Data Filter</h1>
+        <p class="text-lg text-gray-600">Excel-like filtering with multi-column support</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <!-- File Upload Section -->
+        {% if not filter_data %}
+        <div class="lg:col-span-4">
+            <div class="bg-white rounded-2xl shadow-xl p-8 text-center">
+                <div
+                    class="w-20 h-20 bg-gradient-to-br from-primary-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-filter text-white text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Upload Your Data File</h2>
+                <p class="text-gray-600 mb-6">Upload an Excel file to start filtering your data</p>
+
+                <form method="POST" enctype="multipart/form-data" class="max-w-md mx-auto">
+                    <div class="mb-4">
+                        <input type="file" name="file" accept=".xlsx,.xls"
+                            class="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                            required>
+                    </div>
+                    <button type="submit"
+                        class="w-full bg-gradient-to-br from-blue-600 to-purple-600 text-white py-3 px-6 rounded-xl font-bold hover:shadow-lg transition-all hover:scale-105">
+                        <i class="fas fa-upload mr-2"></i>Upload & Start Filtering
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% else %}
+
+        <!-- Filter Interface -->
+        <div class="lg:col-span-1">
+            <!-- Filter Controls -->
+            <div class="bg-white rounded-2xl shadow-xl p-6 sticky top-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-gray-900">Filters</h2>
+                    <button onclick="clearAllFilters()"
+                        class="text-sm text-primary-600 hover:text-primary-700 font-medium">
+                        Clear All
+                    </button>
+                </div>
+
+                <!-- Results Counter -->
+                <div id="resultsCounter"
+                    class="mb-6 p-4 bg-gradient-to-br from-primary-50 to-blue-50 rounded-xl border border-primary-200">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-primary-600 mb-1" id="matchingCount">
+                            {{ filter_data.total_records }}
+                        </div>
+                        <div class="text-sm text-gray-600">matching records</div>
+                        <div class="text-xs text-gray-500 mt-1">
+                            of {{ filter_data.total_records }} total
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="space-y-3">
+                    <button onclick="applyFilters()"
+                        class="w-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-xl font-bold hover:shadow-lg transition-all flex items-center justify-center hover:scale-105">
+                        <i class="fas fa-sync-alt mr-2"></i>Apply Filters
+                    </button>
+
+                    <button onclick="exportFilteredData()"
+                        class="w-full bg-gradient-to-br from-green-500 to-emerald-600 text-white py-3 px-4 rounded-xl font-bold hover:shadow-lg transition-all flex items-center justify-center">
+                        <i class="fas fa-download mr-2"></i>Export Results
+                    </button>
+
+                    <!-- IMPROVED: New File button that actually works -->
+                    <button onclick="startNewFile()"
+                        class="w-full bg-gradient-to-br from-orange-500 to-amber-600 text-white py-3 px-4 rounded-xl font-bold hover:shadow-lg transition-all flex items-center justify-center hover:scale-105">
+                        <i class="fas fa-file-upload mr-2"></i>New File
+                    </button>
+
+                    <a href="{{ url_for('advanced_filter') }}?new=true"
+                        class="w-full bg-gradient-to-br from-gray-500 to-gray-700 text-white py-3 px-4 rounded-xl font-bold hover:shadow-lg transition-all flex items-center justify-center">
+                        <i class="fas fa-redo mr-2"></i>Reset Page
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Columns -->
+        <div class="lg:col-span-3">
+            <div class="bg-white rounded-2xl shadow-xl p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                    <i class="fas fa-sliders-h text-primary-600 mr-3"></i>
+                    Filter Columns - <span class="text-primary-600 ml-1">{{ filter_data.filename }}</span>
+                </h2>
+
+                <!-- Column Filters Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="filterColumns">
+                    {% for column_key in filter_data.columns %}
+                    <div class="filter-column-group border border-gray-200 rounded-xl p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-semibold text-gray-900 text-sm">
+                                {{ filter_data.columns[column_key]['friendly_name'] }}
+                            </h3>
+                            <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                                {{ filter_data.columns[column_key]['total_values'] }} values
+                            </span>
+                        </div>
+
+                        <!-- Search Box -->
+                        <div class="mb-3">
+                            <input type="text"
+                                placeholder="Search {{ filter_data.columns[column_key]['friendly_name'] }}..."
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                onkeyup="filterColumnValues(this, '{{ column_key }}')">
+                        </div>
+
+                        <!-- Values List -->
+                        <div class="max-h-48 overflow-y-auto border border-gray-200 rounded-lg">
+                            <div class="p-2 space-y-1" id="values-{{ column_key }}">
+                                {% for value in filter_data.columns[column_key]['values'] %}
+                                <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer">
+                                    <input type="checkbox" name="{{ column_key }}" value="{{ value }}"
+                                        class="column-checkbox text-primary-600 focus:ring-primary-500 mr-2">
+                                    <span class="text-sm text-gray-700 truncate">{{ value }}</span>
+                                </label>
+                                {% endfor %}
+
+                                {% if filter_data.columns[column_key]['total_values'] > 100 %}
+                                <div class="text-xs text-gray-500 px-2 py-1 text-center">
+                                    ... and {{ filter_data.columns[column_key]['total_values'] - 100 }} more values
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl p-6 text-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+        <p class="text-gray-700">Applying filters...</p>
+    </div>
+</div>
+
+<script>
+    function applyFilters() {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const resultsCounter = document.getElementById('matchingCount');
+
+        loadingOverlay.classList.remove('hidden');
+
+        const filters = {};
+        document.querySelectorAll('.column-checkbox:checked').forEach(checkbox => {
+            const column = checkbox.name;
+            if (!filters[column]) {
+                filters[column] = [];
+            }
+            filters[column].push(checkbox.value);
+        });
+
+        fetch('/advanced_filter/apply', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(filters)
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    resultsCounter.textContent = data.total_matching.toLocaleString();
+                } else {
+                    alert('Error applying filters: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error applying filters');
+            })
+            .finally(() => {
+                loadingOverlay.classList.add('hidden');
+            });
+    }
+
+    function clearAllFilters() {
+        document.querySelectorAll('.column-checkbox').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        applyFilters();
+    }
+
+    function filterColumnValues(searchInput, columnName) {
+        const searchTerm = searchInput.value.toLowerCase();
+        const valuesContainer = document.getElementById(`values-${columnName}`);
+        const valueLabels = valuesContainer.querySelectorAll('label');
+
+        valueLabels.forEach(label => {
+            const valueText = label.querySelector('span').textContent.toLowerCase();
+            if (valueText.includes(searchTerm)) {
+                label.style.display = 'flex';
+            } else {
+                label.style.display = 'none';
+            }
+        });
+    }
+
+    function exportFilteredData() {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/advanced_filter/export';
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+    }
+    // Add this to the script section in advanced_filter.html
+    function startNewFile() {
+        if (confirm('Are you sure you want to start with a new file? Your current filters and data will be lost.')) {
+            // Show loading overlay
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.classList.remove('hidden');
+
+            // Redirect to start fresh session
+            window.location.href = "{{ url_for('advanced_filter') }}?new=true";
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.column-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function () {
+                clearTimeout(window.filterTimeout);
+                window.filterTimeout = setTimeout(applyFilters, 500);
+            });
+        });
+    });
+</script>
+
+<style>
+    .filter-column-group {
+        transition: all 0.2s;
+    }
+
+    .filter-column-group:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transform: translateY(-1px);
+    }
+
+    .max-h-48 {
+        max-height: 12rem;
+    }
+</style>
+{% endblock %}

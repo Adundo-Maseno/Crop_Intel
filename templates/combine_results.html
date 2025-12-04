@@ -1,0 +1,478 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="text-center mb-8 animate-fade-in">
+        <div class="flex items-center justify-center mb-4">
+            <div
+                class="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mr-4">
+                <i class="fas fa-check-circle text-white text-2xl"></i>
+            </div>
+            <h1 class="text-4xl font-black text-gradient-rainbow">Files Combined Successfully!</h1>
+        </div>
+        <p class="text-xl text-gray-600">Your files have been merged into a single sheet with standardized columns.</p>
+        {% if total_skipped_records > 0 %}
+        <div class="mt-4 bg-yellow-50 border border-yellow-200 rounded-xl p-4 max-w-2xl mx-auto">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-triangle text-yellow-600 mr-3"></i>
+                <div>
+                    <p class="text-yellow-800 font-bold">{{ total_skipped_records }} records were skipped</p>
+                    <p class="text-yellow-700 text-sm">Only records with both crop name and variety release name are
+                        included</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Excel Protection Notice -->
+    <div class="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 max-w-4xl mx-auto">
+        <div class="flex items-start">
+            <i class="fas fa-shield-alt text-green-600 mt-1 mr-3"></i>
+            <div>
+                <h4 class="font-bold text-green-800 mb-1">Excel Auto-Formatting Protection Applied</h4>
+                <p class="text-green-700 text-sm">
+                    We've protected your data from Excel's auto-formatting. Ranges like "4-6" will stay as text instead
+                    of converting to dates.
+                    Numbers and ranges are preserved exactly as in your original files.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-2xl p-6 shadow-xl border border-gray-200 text-center hover-lift">
+            <div class="text-3xl font-black text-primary-600 mb-2">{{ total_files }}</div>
+            <div class="text-gray-600 font-bold">Files Combined</div>
+        </div>
+        <div class="bg-white rounded-2xl p-6 shadow-xl border border-gray-200 text-center hover-lift">
+            <div class="text-3xl font-black text-green-600 mb-2">{{ total_records }}</div>
+            <div class="text-gray-600 font-bold">Valid Records</div>
+        </div>
+        <div class="bg-white rounded-2xl p-6 shadow-xl border border-gray-200 text-center hover-lift">
+            <div class="text-3xl font-black text-purple-600 mb-2">{{ columns|length }}</div>
+            <div class="text-gray-600 font-bold">Columns</div>
+        </div>
+        <div class="bg-white rounded-2xl p-6 shadow-xl border border-gray-200 text-center hover-lift">
+            <div class="text-3xl font-black text-orange-600 mb-2">{{ total_skipped_records }}</div>
+            <div class="text-gray-600 font-bold">Skipped Records</div>
+        </div>
+    </div>
+
+    <!-- Download Options -->
+    <div class="bg-white rounded-2xl shadow-xl border border-gray-200 p-6 mb-8">
+        <h2 class="text-2xl font-black text-gray-800 mb-4 text-center">Download Options</h2>
+        <div class="grid md:grid-cols-2 gap-6">
+            <!-- Excel Download -->
+            <div class="text-center p-6 border-2 border-green-200 rounded-2xl bg-green-50">
+                <div
+                    class="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-file-excel text-white text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-black text-gray-800 mb-2">Excel Format</h3>
+                <p class="text-gray-600 mb-4 text-sm">Best for analysis and sharing. Auto-formatting protection applied.
+                </p>
+                <a href="{{ url_for('download_combined_files') }}"
+                    class="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-br from-green-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all w-full">
+                    <i class="fas fa-download mr-2"></i>Download Excel
+                </a>
+            </div>
+
+            <!-- CSV Download -->
+            <div class="text-center p-6 border-2 border-blue-200 rounded-2xl bg-blue-50">
+                <div
+                    class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-file-csv text-white text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-black text-gray-800 mb-2">CSV Format</h3>
+                <p class="text-gray-600 mb-4 text-sm">No auto-formatting issues. Best for data integrity.</p>
+                <a href="{{ url_for('download_combined_files_csv') }}"
+                    class="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all w-full">
+                    <i class="fas fa-download mr-2"></i>Download CSV
+                </a>
+            </div>
+        </div>
+
+        <!-- Additional Action -->
+        <div class="text-center mt-6">
+            <a href="{{ url_for('combine_files') }}"
+                class="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-br from-primary-500 to-blue-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all">
+                <i class="fas fa-plus mr-2"></i>Combine More Files
+            </a>
+        </div>
+    </div>
+
+    <!-- Excel Help Section -->
+    <div class="bg-gray-50 rounded-2xl p-6 mb-8">
+        <details class="group">
+            <summary class="flex items-center justify-between cursor-pointer list-none">
+                <span class="font-bold text-gray-800 text-lg">💡 Excel Formatting Help & Tips</span>
+                <i class="fas fa-chevron-down group-open:rotate-180 transition-transform text-gray-600"></i>
+            </summary>
+            <div class="mt-4 text-gray-600 space-y-4">
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-bold text-gray-800 mb-2">If Excel Still Shows Dates:</h4>
+                        <ol class="list-decimal list-inside space-y-2 text-sm">
+                            <li><strong>Select the entire column</strong></li>
+                            <li><strong>Right-click → Format Cells</strong></li>
+                            <li><strong>Choose "Text" format</strong></li>
+                            <li>Or use <strong>Data → Text to Columns → Finish</strong> (without changing settings)</li>
+                        </ol>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-800 mb-2">Protected Patterns:</h4>
+                        <ul class="list-disc list-inside space-y-1 text-sm">
+                            <li>Ranges: <code>4-6</code>, <code>12-24</code></li>
+                            <li>Years: <code>2020</code>, <code>1998</code></li>
+                            <li>Small numbers: <code>1</code> to <code>31</code></li>
+                            <li>Fractions: <code>1/2</code>, <code>3/4</code></li>
+                            <li>Leading zeros: <code>001</code>, <code>012</code></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p class="text-blue-800 text-sm font-medium">
+                        <i class="fas fa-lightbulb mr-2"></i>
+                        <strong>Recommendation:</strong> Use the CSV download option if you need perfect data integrity
+                        without any Excel auto-formatting.
+                    </p>
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <!-- File Statistics -->
+    <div class="bg-white rounded-2xl shadow-xl border border-gray-200 mb-8 hover-lift">
+        <div class="p-6 border-b border-gray-200">
+            <h2 class="text-2xl font-black text-gray-800 flex items-center">
+                <i class="fas fa-chart-bar text-primary-600 mr-3"></i>File Statistics
+            </h2>
+        </div>
+        <div class="p-6">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="bg-gray-50">
+                            <th class="px-4 py-3 text-left font-bold text-gray-700">File Name</th>
+                            <th class="px-4 py-3 text-left font-bold text-gray-700">Total Records</th>
+                            <th class="px-4 py-3 text-left font-bold text-gray-700">Valid Records</th>
+                            <th class="px-4 py-3 text-left font-bold text-gray-700">Skipped</th>
+                            <th class="px-4 py-3 text-left font-bold text-gray-700">Crop Column</th>
+                            <th class="px-4 py-3 text-left font-bold text-gray-700">Variety Column</th>
+                            <th class="px-4 py-3 text-left font-bold text-gray-700">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stat in file_stats %}
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="px-4 py-3">
+                                <div class="flex items-center">
+                                    <i class="fas fa-file-excel text-green-600 mr-2"></i>
+                                    <span class="font-medium text-gray-700">{{ stat.filename }}</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 text-gray-600">{{ stat.record_count }}</td>
+                            <td class="px-4 py-3 text-gray-600">
+                                <span class="font-bold text-green-600">{{ stat.valid_records }}</span>
+                            </td>
+                            <td class="px-4 py-3 text-gray-600">
+                                {% if stat.skipped_records > 0 %}
+                                <span class="font-bold text-orange-600">{{ stat.skipped_records }}</span>
+                                {% else %}
+                                <span class="text-gray-400">0</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3">
+                                {% if stat.crop_column %}
+                                <span
+                                    class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    {{ stat.crop_column }}
+                                </span>
+                                {% else %}
+                                <span class="text-gray-400 text-sm">Not found</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3">
+                                {% if stat.variety_column %}
+                                <span
+                                    class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                    {{ stat.variety_column }}
+                                </span>
+                                {% else %}
+                                <span class="text-gray-400 text-sm">Not found</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3">
+                                {% if stat.valid_records > 0 %}
+                                <span
+                                    class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-green-100 text-green-800">
+                                    <i class="fas fa-check mr-1"></i> Processed
+                                </span>
+                                {% else %}
+                                <span
+                                    class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-red-100 text-red-800">
+                                    <i class="fas fa-times mr-1"></i> No Valid Data
+                                </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- Data Cleaning Results -->
+    {% if enable_data_cleaning and duplicate_stats %}
+    <div class="bg-white rounded-2xl shadow-xl border border-green-200 mb-8 hover-lift">
+        <div class="p-6 border-b border-green-200 bg-green-50">
+            <h2 class="text-2xl font-black text-gray-800 flex items-center">
+                <i class="fas fa-broom text-green-600 mr-3"></i>Data Cleaning Results
+            </h2>
+            <p class="text-gray-600 mt-2">Duplicate removal completed successfully!</p>
+        </div>
+        <div class="p-6">
+            <!-- Cleaning Statistics -->
+            <div class="grid md:grid-cols-4 gap-6 mb-6">
+                <div class="text-center p-4 bg-green-50 rounded-xl border border-green-200">
+                    <div class="text-2xl font-black text-green-600 mb-1">{{ duplicate_stats.original_count }}</div>
+                    <div class="text-sm font-bold text-gray-700">Original Records</div>
+                </div>
+                <div class="text-center p-4 bg-blue-50 rounded-xl border border-blue-200">
+                    <div class="text-2xl font-black text-blue-600 mb-1">{{ duplicate_stats.cleaned_count }}</div>
+                    <div class="text-sm font-bold text-gray-700">After Cleaning</div>
+                </div>
+                <div class="text-center p-4 bg-orange-50 rounded-xl border border-orange-200">
+                    <div class="text-2xl font-black text-orange-600 mb-1">{{ duplicate_stats.duplicates_removed }}</div>
+                    <div class="text-sm font-bold text-gray-700">Duplicates Removed</div>
+                </div>
+                <div class="text-center p-4 bg-purple-50 rounded-xl border border-purple-200">
+                    <div class="text-2xl font-black text-purple-600 mb-1">{{ duplicate_stats.duplicate_groups }}</div>
+                    <div class="text-sm font-bold text-gray-700">Duplicate Groups</div>
+                </div>
+            </div>
+
+            <!-- Cleaning Details -->
+            <!-- In the data cleaning results section -->
+            <div class="bg-gray-50 rounded-xl p-4">
+                <h4 class="font-bold text-gray-800 mb-3">Cleaning Methodology</h4>
+                <div class="grid md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <p class="text-gray-700 mb-2"><strong>Grouping Columns:</strong></p>
+                        <ul class="list-disc list-inside text-gray-600 space-y-1">
+                            {% for col in group_columns_used %}
+                            <li>{{ col }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div>
+                        <p class="text-gray-700 mb-2"><strong>Processing Steps:</strong></p>
+                        <ul class="list-disc list-inside text-gray-600 space-y-1">
+                            <li>Highest completeness percentage</li>
+                            <li>Alphabetical sorting (crop → variety)</li>
+                            <li>All fields considered for completeness</li>
+                            <li>Source information preserved</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            {% if duplicate_stats.completeness_improvement > 0 %}
+            <div class="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div class="flex items-center">
+                    <i class="fas fa-chart-line text-blue-600 mr-3"></i>
+                    <div>
+                        <p class="text-blue-800 font-bold">Data Quality Improved!</p>
+                        <p class="text-blue-700 text-sm">
+                            Average completeness increased by {{ duplicate_stats.completeness_improvement|round(2) }}%
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    <!-- Skipped Rows Section -->
+    {% if total_skipped_records > 0 %}
+    <div class="bg-white rounded-2xl shadow-xl border border-gray-200 mb-8 hover-lift">
+        <div class="p-6 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <h2 class="text-2xl font-black text-gray-800 flex items-center">
+                    <i class="fas fa-exclamation-triangle text-orange-600 mr-3"></i>Skipped Records Details
+                </h2>
+                <div class="flex space-x-3">
+                    <a href="{{ url_for('download_skipped_rows_excel') }}"
+                        class="inline-flex items-center px-4 py-2 bg-gradient-to-br from-orange-500 to-amber-600 text-white font-bold rounded-xl hover:shadow-lg transition-all text-sm">
+                        <i class="fas fa-download mr-2"></i>Excel
+                    </a>
+                    <a href="{{ url_for('download_skipped_rows_csv') }}"
+                        class="inline-flex items-center px-4 py-2 bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold rounded-xl hover:shadow-lg transition-all text-sm">
+                        <i class="fas fa-file-csv mr-2"></i>CSV
+                    </a>
+                </div>
+            </div>
+            <p class="text-gray-600 mt-2">{{ total_skipped_records }} records were skipped because they were missing
+                crop name, variety name, or both.</p>
+        </div>
+        <div class="p-6">
+            <!-- Skip Reasons Summary -->
+            <div class="mb-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-3">Skip Reasons Summary</h3>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {% set reasons = {} %}
+                    {% for detail in skipped_rows_details %}
+                    {% set reason = detail.skip_reason %}
+                    {% if reason not in reasons %}
+                    {% set _ = reasons.update({reason: 1}) %}
+                    {% else %}
+                    {% set _ = reasons.update({reason: reasons[reason] + 1}) %}
+                    {% endif %}
+                    {% endfor %}
+
+                    {% for reason, count in reasons.items() %}
+                    <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium text-gray-700">{{ reason }}</span>
+                            <span class="bg-orange-100 text-orange-800 text-xs font-bold px-2 py-1 rounded-full">{{
+                                count }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Skipped Rows Preview -->
+            <h3 class="text-lg font-bold text-gray-800 mb-3">Skipped Records Preview (First 20)</h3>
+            <div class="overflow-x-auto rounded-lg border border-gray-200">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left font-bold text-gray-700 text-sm border-b border-gray-200">
+                                File</th>
+                            <th class="px-4 py-3 text-left font-bold text-gray-700 text-sm border-b border-gray-200">Row
+                            </th>
+                            <th class="px-4 py-3 text-left font-bold text-gray-700 text-sm border-b border-gray-200">
+                                Skip Reason</th>
+                            <th class="px-4 py-3 text-left font-bold text-gray-700 text-sm border-b border-gray-200">
+                                Crop Value</th>
+                            <th class="px-4 py-3 text-left font-bold text-gray-700 text-sm border-b border-gray-200">
+                                Variety Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for skipped in skipped_preview %}
+                        <tr class="hover:bg-gray-50 border-b border-gray-100">
+                            <td class="px-4 py-3 text-sm text-gray-600">
+                                <div class="flex items-center">
+                                    <i class="fas fa-file-excel text-green-600 mr-2"></i>
+                                    <span class="font-medium">{{ skipped.file_name }}</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 text-sm text-gray-600 font-mono">{{ skipped.row_number }}</td>
+                            <td class="px-4 py-3 text-sm">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold 
+                                    {% if 'both' in skipped.skip_reason.lower() %}bg-red-100 text-red-800
+                                    {% elif 'crop' in skipped.skip_reason.lower() %}bg-orange-100 text-orange-800
+                                    {% elif 'variety' in skipped.skip_reason.lower() %}bg-yellow-100 text-yellow-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ skipped.skip_reason }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">
+                                {% if skipped.crop_value %}
+                                {{ skipped.crop_value }}
+                                {% else %}
+                                <span class="text-gray-400">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">
+                                {% if skipped.variety_value %}
+                                {{ skipped.variety_value }}
+                                {% else %}
+                                <span class="text-gray-400">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if total_skipped_records > 20 %}
+            <div class="mt-4 text-center text-gray-500">
+                Showing first 20 of {{ total_skipped_records }} skipped records. Download the full report to see all
+                skipped rows.
+            </div>
+            {% endif %}
+
+            <div class="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div class="flex items-start">
+                    <i class="fas fa-info-circle text-blue-600 mt-1 mr-3"></i>
+                    <div>
+                        <p class="text-blue-800 text-sm font-medium">
+                            Download the skipped rows report to review all excluded records and identify data quality
+                            issues.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Data Preview -->
+    <div class="p-6 border-b border-gray-200">
+        <h2 class="text-2xl font-black text-gray-800 flex items-center">
+            <i class="fas fa-table text-primary-600 mr-3"></i>Data Preview (First 20 Records)
+        </h2>
+        <p class="text-gray-600 mt-2">
+            Only showing records with both crop name and variety release name
+            {% if enable_data_cleaning %}
+            • <strong>Sorted alphabetically by crop then variety name</strong>
+            {% endif %}
+        </p>
+    </div>
+    <div class="p-6">
+        <div class="overflow-x-auto rounded-lg border border-gray-200">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        {% for column in columns %}
+                        <th class="px-4 py-3 text-left font-bold text-gray-700 text-sm border-b border-gray-200">
+                            {{ column }}
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in preview_data %}
+                    <tr class="hover:bg-gray-50 border-b border-gray-100">
+                        {% for column in columns %}
+                        <td class="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">
+                            {% if column == 'crop' or column == 'variety_release_name' %}
+                            <span class="font-medium text-green-700">{{ record[column] if record[column] is not none
+                                }}</span>
+                            {% else %}
+                            {{ record[column] if record[column] is not none }}
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if total_records > 20 %}
+        <div class="mt-4 text-center text-gray-500">
+            Showing first 20 of {{ total_records }} valid records. Download the full file to see all data.
+        </div>
+        {% endif %}
+    </div>
+</div>
+</div>
+{% endblock %}
